@@ -111,3 +111,114 @@ type (
 		ClientErrorMessage string
 	}
 )
+
+type ActionBody struct {
+	Body        map[string]interface{} `json:"data"`
+	DisableFaas bool                   `json:"disable_faas"`
+}
+
+type AuthRequest struct {
+	Body    map[string]interface{} `json:"data"`
+	Headers map[string]string      `json:"headers"`
+}
+
+type APIItem struct {
+	collection string
+	config     *Config
+}
+
+type CreateItem struct {
+	collection string
+	config     *Config
+	data       ActionBody
+}
+
+type DeleteItem struct {
+	collection  string
+	config      *Config
+	disableFaas bool
+	id          string
+}
+
+type DeleteMultipleItem struct {
+	collection  string
+	config      *Config
+	disableFaas bool
+	ids         []string
+}
+
+type UpdateItem struct {
+	collection string
+	config     *Config
+	data       ActionBody
+}
+
+type GetSingleItem struct {
+	collection string
+	config     *Config
+	guid       string
+}
+
+type GetListItem struct {
+	collection string
+	config     *Config
+	request    Request
+	limit      int
+	page       int
+}
+
+type GetListAggregation struct {
+	collection string
+	config     *Config
+	request    Request
+}
+
+type User struct {
+	Id           string `json:"id"`
+	Login        string `json:"login"`
+	Password     string `json:"password"`
+	Email        string `json:"email"`
+	Phone        string `json:"phone"`
+	Name         string `json:"name"`
+	ProjectId    string `json:"project_id"`
+	RoleId       string `json:"role_id"`
+	ClientTypeId string `json:"client_type_id"`
+}
+
+type Token struct {
+	AccessToken      string `json:"access_token"`
+	RefreshToken     string `json:"refresh_token"`
+	CreatedAt        string `json:"created_at"`
+	UpdatedAt        string `json:"updated_at"`
+	ExpiresAt        string `json:"expires_at"`
+	RefreshInSeconds int32  `json:"refresh_in_seconds"`
+}
+
+type RegisterResponse struct {
+	Status      string `json:"status"`
+	Description string `json:"description"`
+	Data        struct {
+		UserFound      bool   `json:"user_found"`
+		UserId         string `json:"user_id"`
+		Token          *Token `json:"token"`
+		LoginTableSlug string `json:"login_table_slug"`
+		EnvironmentId  string `json:"environment_id"`
+		User           *User  `json:"user"`
+		UserIdAuth     string `json:"user_id_auth"`
+	} `json:"data"`
+}
+
+type CreateFileResponse struct {
+	Status      string `json:"status"`
+	Description string `json:"description"`
+	Data        struct {
+		ID               string `json:"id"`
+		Title            string `json:"title"`
+		Storage          string `json:"storage"`
+		FileNameDisk     string `json:"file_name_disk"`
+		FileNameDownload string `json:"file_name_download"`
+		Link             string `json:"link"`
+		FileSize         int    `json:"file_size"`
+	} `json:"data"`
+	CustomMessage string `json:"custom_message"`
+}

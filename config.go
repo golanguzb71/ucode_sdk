@@ -7,10 +7,8 @@ import (
 type Config struct {
 	AppId          string
 	BaseURL        string
+	AuthBaseURL    string
 	FunctionName   string
+	ProjectId      string
 	RequestTimeout time.Duration
-}
-
-func (cfg *Config) SetBaseUrl(url string) {
-	cfg.BaseURL = url
 }
