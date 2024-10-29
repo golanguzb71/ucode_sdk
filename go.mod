@@ -1,8 +1,9 @@
-module github.com/golanguzb70/ucode-sdk
+module github.com/ucode-io/ucode_sdk
 
-go 1.22
+go 1.23.2
 
 require (
+	github.com/golanguzb70/ucode-sdk v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cast v1.7.0
 	github.com/stretchr/testify v1.9.0

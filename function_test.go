@@ -2,6 +2,7 @@ package ucodesdk
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -13,16 +14,15 @@ import (
 )
 
 var (
-	baseUrl      = "https://api.admin.u-code.io"
-	functionName = ""
+	baseUrl = "https://api.admin.u-code.io"
 )
 
 func TestEndToEnd(t *testing.T) {
 	var (
 		response      Response
 		errorResponse ResponseError
-		ucodeApi      = NewSDK(&Config{BaseURL: baseUrl, FunctionName: functionName})
-		returnError   = func(errorResponse ResponseError) string {
+
+		returnError = func(errorResponse ResponseError) string {
 			response = Response{
 				Status: "error",
 				Data:   map[string]interface{}{"message": errorResponse.ClientErrorMessage, "error": errorResponse.ErrorMessage, "description": errorResponse.Description},
@@ -42,7 +42,7 @@ func TestEndToEnd(t *testing.T) {
 
 	// check DoRequest method
 	t.Run("TestDoRequest", func(t *testing.T) {
-		ucodeApi := NewSDK(&Config{BaseURL: baseUrl, FunctionName: functionName})
+		ucodeApi := NewSDK(&Config{BaseURL: baseUrl})
 
 		header := map[string]string{
 			"authorization": "API-KEY",
@@ -93,7 +93,7 @@ func TestEndToEnd(t *testing.T) {
 
 		// Test with request timeout
 		ucodeApi.Config().RequestTimeout = time.Duration(1 * time.Nanosecond)
-		_, err = ucodeApi.DoRequest(baseUrl+"/test", "GET", nil, header)
+		_, err = ucodeApi.DoRequest(baseUrl+"/test", http.MethodGet, nil, header)
 		if err == nil {
 			t.Error("Expected timeout error, got nil")
 			return
@@ -120,6 +120,13 @@ func TestEndToEnd(t *testing.T) {
 			return
 		}
 	})
+
+	fmt.Println("mongoAppId: ", mongoAppId)
+	fmt.Println("postgresAppId: ", postgresAppId)
+	var (
+		ucodeApi   = NewSDK(&Config{BaseURL: baseUrl, AppId: mongoAppId})
+		ucodeApiPg = NewSDK(&Config{BaseURL: baseUrl, AppId: postgresAppId})
+	)
 
 	t.Run("createInMongo", func(t *testing.T) {
 		// --------------------------CreateObject------------------------------
@@ -230,7 +237,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		for i := 0; i < housesCount; i++ {
-			_, response, err := ucodeApi.Items("houses").Create(createHousesRequest).Exec()
+			_, response, err := ucodeApiPg.Items("houses").Create(createHousesRequest).Exec()
 			if err != nil {
 				errorResponse.Description = response.Data["description"]
 				errorResponse.ClientErrorMessage = "error on creating new hourse"
@@ -246,7 +253,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		// check error case
-		_, _, err := ucodeApi.Items("houses").Create(map[string]interface{}{}).Exec()
+		_, _, err := ucodeApiPg.Items("houses").Create(map[string]interface{}{}).Exec()
 		if err == nil {
 			t.Error("error: request not given but work")
 			return
@@ -257,7 +264,7 @@ func TestEndToEnd(t *testing.T) {
 			A int
 			B func() // functions are not supported
 		}
-		_, _, err = ucodeApi.Items("houses").Create(map[string]interface{}{"guid": MyStruct{}}).Exec()
+		_, _, err = ucodeApiPg.Items("houses").Create(map[string]interface{}{"guid": MyStruct{}}).Exec()
 		if err == nil {
 			t.Error("error: invalid request given but work")
 			return
@@ -267,7 +274,7 @@ func TestEndToEnd(t *testing.T) {
 	t.Run("gethousesInPostgres", func(t *testing.T) {
 		// --------------------------GetList------------------------------
 		// getting houses
-		ExistObject, response, err := ucodeApi.Items("houses").GetList().Page(1).Limit(100000).Exec()
+		ExistObject, response, err := ucodeApiPg.Items("houses").GetList().Page(1).Limit(100000).Exec()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "Error on useing GetList method"
@@ -294,7 +301,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("invalid_table").GetList().Page(-1).Limit(-1).Exec()
+		_, _, err = ucodeApiPg.Items("invalid_table").GetList().Page(-1).Limit(-1).Exec()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return
@@ -305,15 +312,7 @@ func TestEndToEnd(t *testing.T) {
 			A int
 			B func() // functions are not supported
 		}
-		// _, _, err = ucodeApi.GetList(&ArgumentWithPegination{
-		// 	AppId:       postgresAppId,
-		// 	TableSlug:   "houses",
-		// 	Request:     Request{Data: map[string]interface{}{"guid": MyStruct{}}},
-		// 	DisableFaas: true,
-		// 	Limit:       10,
-		// 	Page:        1,
-		// })
-		_, _, err = ucodeApi.Items("houses").
+		_, _, err = ucodeApiPg.Items("houses").
 			GetList().
 			Filter(map[string]any{"guid": MyStruct{}}).
 			Page(1).
@@ -356,16 +355,7 @@ func TestEndToEnd(t *testing.T) {
 
 	t.Run("getRoomsInMongo", func(t *testing.T) {
 		// --------------------------GetListSlim------------------------------
-		// getListSlimReq := Request{Data: map[string]interface{}{}}
-		// getListSlim, response, err := ucodeApi.GetListSlim(&ArgumentWithPegination{
-		// 	AppId:       mongoAppId,
-		// 	TableSlug:   "room",
-		// 	Request:     getListSlimReq,
-		// 	DisableFaas: true,
-		// 	Limit:       100000,
-		// 	Page:        1,
-		// })
-		getListSlim, response, err := ucodeApi.Items("room").GetList().Page(1).Limit(100000).ExecSlim()
+		getListSlim, response, err := ucodeApi.Items("room").GetList().Page(1).Limit(100000).Exec()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "Error on GetListSlim"
@@ -398,14 +388,14 @@ func TestEndToEnd(t *testing.T) {
 			GetList().
 			Page(1).Limit(10).
 			Filter(map[string]any{"guid": MyStruct{}}).
-			ExecSlim()
+			Exec()
 		if err == nil {
 			t.Error("error: invalid request given but work")
 			return
 		}
 
 		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("houses").GetList().Page(-1).Limit(-1).ExecSlim()
+		_, _, err = ucodeApi.Items("houses").GetList().Page(-1).Limit(-1).Exec()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return
@@ -419,7 +409,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		for i := 0; i < roomsCount; i++ {
-			_, response, err := ucodeApi.Items("room").Create(createRoomRequest).Exec()
+			_, response, err := ucodeApiPg.Items("room").Create(createRoomRequest).Exec()
 			if err != nil {
 				errorResponse.Description = response.Data["description"]
 				errorResponse.ClientErrorMessage = "error on creating new hourse"
@@ -437,7 +427,7 @@ func TestEndToEnd(t *testing.T) {
 
 	t.Run("getRoomsInPostgres", func(t *testing.T) {
 		// --------------------------GetListSlim------------------------------
-		getListSlim, response, err := ucodeApi.Items("room").GetList().Page(1).Limit(100000).ExecSlim()
+		getListSlim, response, err := ucodeApiPg.Items("room").GetList().Page(1).Limit(100000).Exec()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "Error on GetListSlim"
@@ -465,14 +455,14 @@ func TestEndToEnd(t *testing.T) {
 			A int
 			B func() // functions are not supported
 		}
-		_, _, err = ucodeApi.Items("houses").GetList().Filter(map[string]any{"guid": MyStruct{}}).Page(1).Limit(10).ExecSlim()
+		_, _, err = ucodeApi.Items("houses").GetList().Filter(map[string]any{"guid": MyStruct{}}).Page(1).Limit(10).Exec()
 		if err == nil {
 			t.Error("error: invalid request given but work")
 			return
 		}
 
 		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("houses").GetList().Page(-1).Limit(-1).ExecSlim()
+		_, _, err = ucodeApi.Items("houses").GetList().Page(-1).Limit(-1).Exec()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return
@@ -539,7 +529,7 @@ func TestEndToEnd(t *testing.T) {
 			"guid":       housesPostgres[0]["guid"],
 			"room_count": 10,
 		}
-		_, response, err := ucodeApi.Items("houses").Update(updateReq).ExecSingle()
+		_, response, err := ucodeApiPg.Items("houses").Update(updateReq).ExecSingle()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "error on UpdateObject"
@@ -556,7 +546,7 @@ func TestEndToEnd(t *testing.T) {
 		t.Run("GetSingleInPostgres", func(t *testing.T) {
 			// --------------------------GetSingle------------------------------
 			// get the house info
-			houseInfoo, response, err := ucodeApi.Items("houses").GetSingle(cast.ToString(housesPostgres[0]["guid"])).Exec()
+			houseInfoo, response, err := ucodeApiPg.Items("houses").GetSingle(cast.ToString(housesPostgres[0]["guid"])).Exec()
 			if err != nil {
 				errorResponse.Description = response.Data["description"]
 				errorResponse.ClientErrorMessage = "Error on getting single"
@@ -579,7 +569,7 @@ func TestEndToEnd(t *testing.T) {
 			assert.Equal(t, housesPostgres[0]["guid"], cast.ToString(houseInfoo.Data.Data.Response["guid"]))
 
 			// Test with invalid Request parameters
-			_, _, err = ucodeApi.Items("invalid_table").GetSingle("").Exec()
+			_, _, err = ucodeApiPg.Items("invalid_table").GetSingle("").Exec()
 			if err == nil {
 				t.Error("error: invalid request given but work")
 				return
@@ -587,7 +577,7 @@ func TestEndToEnd(t *testing.T) {
 		})
 
 		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("invalid_table").Update(map[string]interface{}{"guid": "invalid_guid"}).ExecSingle()
+		_, _, err = ucodeApiPg.Items("invalid_table").Update(map[string]interface{}{"guid": "invalid_guid"}).ExecSingle()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return
@@ -598,7 +588,7 @@ func TestEndToEnd(t *testing.T) {
 			A int
 			B func() // functions are not supported
 		}
-		_, _, err = ucodeApi.Items("invalid_table").Update(map[string]interface{}{"guid": MyStruct{}}).ExecSingle()
+		_, _, err = ucodeApiPg.Items("invalid_table").Update(map[string]interface{}{"guid": MyStruct{}}).ExecSingle()
 		if err == nil {
 			t.Error("error: invalid request given but work")
 			return
@@ -658,7 +648,7 @@ func TestEndToEnd(t *testing.T) {
 			Page(1).
 			Limit(100000).
 			Filter(map[string]any{"ids": ids}).
-			ExecSlim()
+			Exec()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "Error on GetListSlim"
@@ -715,7 +705,7 @@ func TestEndToEnd(t *testing.T) {
 			})
 		}
 
-		_, response, err := ucodeApi.Items("houses").Update(map[string]any{"objects": multipleUpdateRequest}).ExecMultiple()
+		_, response, err := ucodeApiPg.Items("houses").Update(map[string]any{"objects": multipleUpdateRequest}).ExecMultiple()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "Error on MultipleUpdate"
@@ -730,12 +720,12 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		// --------------------------GetListSlim------------------------------
-		getListSlim, response, err := ucodeApi.Items("houses").
+		getListSlim, response, err := ucodeApiPg.Items("houses").
 			GetList().
 			Page(1).
 			Filter(map[string]any{"ids": ids}).
 			Limit(100000).
-			ExecSlim()
+			Exec()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "Error on GetListSlim"
@@ -759,7 +749,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("").Update(map[string]any{"objects": []map[string]interface{}{}}).ExecMultiple()
+		_, _, err = ucodeApiPg.Items("").Update(map[string]any{"objects": []map[string]interface{}{}}).ExecMultiple()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return
@@ -770,7 +760,7 @@ func TestEndToEnd(t *testing.T) {
 			A int
 			B func() // functions are not supported
 		}
-		_, _, err = ucodeApi.Items("houses").Update(map[string]any{"objects": MyStruct{}}).ExecMultiple()
+		_, _, err = ucodeApiPg.Items("houses").Update(map[string]any{"objects": MyStruct{}}).ExecMultiple()
 		if err == nil {
 			t.Error("error: invalid request given but work")
 			return
@@ -873,7 +863,7 @@ func TestEndToEnd(t *testing.T) {
 		// --------------------------GetSingleSlim------------------------------
 		var id = cast.ToString(roomsPostgres[0]["guid"])
 
-		courseResponse, response, err := ucodeApi.Items("room").GetSingle(id).ExecSlim()
+		courseResponse, response, err := ucodeApiPg.Items("room").GetSingle(id).ExecSlim()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "Error on get-single course"
@@ -891,34 +881,10 @@ func TestEndToEnd(t *testing.T) {
 		assert.Equal(t, "room", courseResponse.Data.Data.Response["name"])
 
 		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("houses").GetSingle("invalid_guid").ExecSlim()
+		_, _, err = ucodeApiPg.Items("houses").GetSingle("invalid_guid").ExecSlim()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return
-		}
-	})
-
-	t.Run("DeleteManyToMany in mongo", func(t *testing.T) {
-		// --------------------------GetSingle------------------------------
-		// get the house info
-		houseInfoo, response, err := ucodeApi.Items("houses").
-			GetSingle(cast.ToString(housesMongo[0]["guid"])).
-			Exec()
-		if err != nil {
-			errorResponse.Description = response.Data["description"]
-			errorResponse.ClientErrorMessage = "Error on getting single"
-			errorResponse.ErrorMessage = err.Error()
-			errorResponse.StatusCode = http.StatusInternalServerError
-			t.Error(returnError(errorResponse))
-			return
-		}
-
-		if response.Status != "done" {
-			t.Error(response.Status, response.Data, response.Error)
-		}
-
-		if len(houseInfoo.Data.Data.Response) == 0 {
-			t.Errorf("error GetSingle method not return data")
 		}
 	})
 
@@ -945,7 +911,7 @@ func TestEndToEnd(t *testing.T) {
 
 	t.Run("Delete in postgres", func(t *testing.T) {
 		// --------------------------Delete------------------------------
-		response, err := ucodeApi.Items("houses").
+		response, err := ucodeApiPg.Items("houses").
 			Delete().DisableFaas(true).
 			Single(cast.ToString(housesPostgres[0]["guid"])).
 			Exec()
@@ -1010,7 +976,7 @@ func TestEndToEnd(t *testing.T) {
 		for _, val := range housesPostgres {
 			idMultipleDeleteHouses = append(idMultipleDeleteHouses, cast.ToString(val["guid"]))
 		}
-		response, err := ucodeApi.Items("houses").
+		response, err := ucodeApiPg.Items("houses").
 			Delete().
 			DisableFaas(true).
 			Multiple(idMultipleDeleteHouses).
@@ -1029,7 +995,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		// Test with invalid request parameters
-		response, err = ucodeApi.Items("houses").
+		response, err = ucodeApiPg.Items("houses").
 			Delete().
 			DisableFaas(true).
 			Multiple([]string{""}).
@@ -1079,7 +1045,7 @@ func TestEndToEnd(t *testing.T) {
 			idMultipleDeleteRoom = append(idMultipleDeleteRoom, cast.ToString(val["guid"]))
 		}
 
-		response, err := ucodeApi.Items("room").
+		response, err := ucodeApiPg.Items("room").
 			Delete().
 			DisableFaas(true).
 			Multiple(idMultipleDeleteRoom).
@@ -1120,7 +1086,7 @@ func TestEndToEnd(t *testing.T) {
 
 		// --------------------------GetList------------------------------
 		// getting houses in postgres
-		ExistObject, response, err = ucodeApi.Items("houses").
+		ExistObject, response, err = ucodeApiPg.Items("houses").
 			GetList().
 			Page(1).
 			Limit(100000).
@@ -1166,7 +1132,7 @@ func TestEndToEnd(t *testing.T) {
 
 		// --------------------------GetList------------------------------
 		// getting houses in postgres
-		ExistObject, response, err = ucodeApi.Items("room").GetList().Page(1).Limit(100000).Exec()
+		ExistObject, response, err = ucodeApiPg.Items("room").GetList().Page(1).Limit(100000).Exec()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "Error on useing GetList method"

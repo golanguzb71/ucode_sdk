@@ -109,8 +109,6 @@ func (u *object) Function() FunctionI {
 	return &APIFunction{}
 }
 
-// CREATE ITEM
-
 // Items interface defines methods related to item operations
 type ItemsI interface {
 	/*
@@ -513,37 +511,6 @@ func (a *GetListItem) WithRelations(with bool) *GetListItem {
 
 func (a *GetListItem) Exec() (GetListClientApiResponse, Response, error) {
 	var (
-		response      = Response{Status: "done"}
-		getListObject GetListClientApiResponse
-		url           = fmt.Sprintf("%s/v2/object/get-list/%s?from-ofs=%t", a.config.BaseURL, a.collection, true)
-	)
-
-	var appId = a.config.AppId
-
-	header := map[string]string{
-		"authorization": "API-KEY",
-		"X-API-KEY":     appId,
-	}
-
-	getListResponseInByte, err := DoRequest(url, http.MethodPost, a.request, header)
-	if err != nil {
-		response.Data = map[string]any{"description": string(getListResponseInByte), "message": "Can't sent request", "error": err.Error()}
-		response.Status = "error"
-		return GetListClientApiResponse{}, response, err
-	}
-
-	err = json.Unmarshal(getListResponseInByte, &getListObject)
-	if err != nil {
-		response.Data = map[string]any{"description": string(getListResponseInByte), "message": "Error while unmarshalling get list object", "error": err.Error()}
-		response.Status = "error"
-		return GetListClientApiResponse{}, response, err
-	}
-
-	return getListObject, response, nil
-}
-
-func (a *GetListItem) ExecSlim() (GetListClientApiResponse, Response, error) {
-	var (
 		response = Response{Status: "done"}
 		listSlim GetListClientApiResponse
 		url      = fmt.Sprintf("%s/v2/object-slim/get-list/%s?from-ofs=%t", a.config.BaseURL, a.collection, true)
@@ -867,6 +834,9 @@ func DoRequest(url string, method string, body any, headers map[string]string) (
 	defer resp.Body.Close()
 
 	respByte, err := io.ReadAll(resp.Body)
+
+	fmt.Println("resp byte", string(respByte))
+	fmt.Println("resp byte error", err)
 	return respByte, err
 }
 

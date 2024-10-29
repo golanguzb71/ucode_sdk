@@ -202,7 +202,6 @@ type DeleteFile struct {
 }
 
 type APIFunction struct {
-	config *Config
 }
 
 type User struct {

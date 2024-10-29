@@ -37,7 +37,7 @@ config := &ucodesdk.Config{
 }
 
 // Create a new UCode API client
-ucodeApi := ucodesdk.New(config)
+ucodeApi := ucodesdk.NewSDK(config)
 ```
 
 Make sure to set the `APP_ID` environment variable before running your application.
@@ -49,11 +49,9 @@ Make sure to set the `APP_ID` environment variable before running your applicati
 To create a new object in a specific table:
 
 ```go
-createRequest := ucodesdk.Request{
-    Data: map[string]interface{}{
+createRequest :=  map[string]any{
         "name":  "Example Object",
         "price": 100,
-    },
 }
 
 createdObject, response, err := ucodeApi.CreateObject(&ucodesdk.Argument{
