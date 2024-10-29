@@ -2,7 +2,6 @@ package ucodesdk
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -112,8 +111,6 @@ func TestEndToEnd(t *testing.T) {
 		}
 	})
 
-	fmt.Println("mongoAppId: ", mongoAppId)
-	fmt.Println("postgresAppId: ", postgresAppId)
 	var (
 		ucodeApi   = NewSDK(&Config{BaseURL: baseUrl, AppId: mongoAppId})
 		ucodeApiPg = NewSDK(&Config{BaseURL: baseUrl, AppId: postgresAppId})
