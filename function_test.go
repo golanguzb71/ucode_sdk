@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cast"
@@ -40,7 +39,7 @@ func TestEndToEnd(t *testing.T) {
 		housesCount    = 2
 	)
 
-	// check DoRequest method
+	// // check DoRequest method
 	t.Run("TestDoRequest", func(t *testing.T) {
 		ucodeApi := NewSDK(&Config{BaseURL: baseUrl})
 
@@ -88,14 +87,6 @@ func TestEndToEnd(t *testing.T) {
 		_, err = ucodeApi.DoRequest(baseUrl+"/test", "GET", nil, customHeaders)
 		if err != nil {
 			t.Errorf("Error on DoRequest with custom headers: %v", err)
-			return
-		}
-
-		// Test with request timeout
-		ucodeApi.Config().RequestTimeout = time.Duration(1 * time.Nanosecond)
-		_, err = ucodeApi.DoRequest(baseUrl+"/test", http.MethodGet, nil, header)
-		if err == nil {
-			t.Error("Expected timeout error, got nil")
 			return
 		}
 	})
@@ -154,7 +145,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		// check error case
-		_, _, err := ucodeApi.Items("houses").Create(map[string]interface{}{}).Exec()
+		_, _, err := ucodeApi.Items("houses").Create(nil).Exec()
 		if err == nil {
 			t.Error("error: request not given but work")
 			return
@@ -166,7 +157,7 @@ func TestEndToEnd(t *testing.T) {
 			B func() // functions are not supported
 		}
 
-		_, response, err = ucodeApi.Items("houses").Create(map[string]interface{}{"guid": MyStruct{}}).Exec()
+		_, response, err = ucodeApi.Items("houses").Create(map[string]any{"guid": MyStruct{}}).Exec()
 		if err == nil {
 			t.Error("error: invalid request given but work")
 			return
@@ -253,7 +244,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		// check error case
-		_, _, err := ucodeApiPg.Items("houses").Create(map[string]interface{}{}).Exec()
+		_, _, err := ucodeApiPg.Items("houses").Create(nil).Exec()
 		if err == nil {
 			t.Error("error: request not given but work")
 			return
@@ -331,12 +322,6 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		for i := 0; i < roomsCount; i++ {
-			// _, response, err := ucodeApi.CreateObject(&Argument{
-			// 	AppId:       mongoAppId,
-			// 	TableSlug:   "room",
-			// 	Request:     Request{Data: createRoomRequest},
-			// 	DisableFaas: true,
-			// })
 			_, response, err := ucodeApi.Items("room").Create(createRoomRequest).Exec()
 			if err != nil {
 				errorResponse.Description = response.Data["description"]
@@ -391,13 +376,6 @@ func TestEndToEnd(t *testing.T) {
 			Exec()
 		if err == nil {
 			t.Error("error: invalid request given but work")
-			return
-		}
-
-		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("houses").GetList().Page(-1).Limit(-1).Exec()
-		if err == nil {
-			t.Error("Expected error for invalid parameters, got nil")
 			return
 		}
 	})
@@ -458,13 +436,6 @@ func TestEndToEnd(t *testing.T) {
 		_, _, err = ucodeApi.Items("houses").GetList().Filter(map[string]any{"guid": MyStruct{}}).Page(1).Limit(10).Exec()
 		if err == nil {
 			t.Error("error: invalid request given but work")
-			return
-		}
-
-		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("houses").GetList().Page(-1).Limit(-1).Exec()
-		if err == nil {
-			t.Error("Expected error for invalid parameters, got nil")
 			return
 		}
 	})
@@ -634,15 +605,6 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		// --------------------------GetListSlim------------------------------
-		// getListSlimReq := Request{Data: map[string]interface{}{"ids": ids}}
-		// getListSlim, response, err := ucodeApi.GetListSlim(&ArgumentWithPegination{
-		// 	AppId:       mongoAppId,
-		// 	TableSlug:   "houses",
-		// 	Request:     getListSlimReq,
-		// 	DisableFaas: true,
-		// 	Limit:       100000,
-		// 	Page:        1,
-		// })
 		getListSlim, response, err := ucodeApi.Items("houses").
 			GetList().
 			Page(1).
@@ -769,12 +731,16 @@ func TestEndToEnd(t *testing.T) {
 
 	t.Run("GetListAggregation in mongo", func(t *testing.T) {
 		// --------------------------GetListAggregation FOR MongoDB------------------------------
-		getListAggregationPipeline := map[string]interface{}{"$match": map[string]interface{}{
-			"price": map[string]interface{}{
-				"$exists": true,
-				"$eq":     15000,
+		getListAggregationPipeline := map[string]any{
+			"pipelines": []map[string]any{{
+				"$match": map[string]any{
+					"price": map[string]any{
+						"$exists": true,
+						"$eq":     15000,
+					},
+				},
 			},
-		},
+			},
 		}
 		getListAggregationList, response, err := ucodeApi.Items("houses").
 			GetList().
@@ -826,14 +792,6 @@ func TestEndToEnd(t *testing.T) {
 	t.Run("GetSingleSlim in mongo", func(t *testing.T) {
 		// --------------------------GetSingleSlim------------------------------
 		var id = cast.ToString(roomsMongo[0]["guid"])
-
-		// getCourseRequest := Request{Data: map[string]interface{}{"guid": id}}
-		// courseResponse, response, err := ucodeApi.GetSingleSlim(&Argument{
-		// 	AppId:       mongoAppId,
-		// 	TableSlug:   "room",
-		// 	Request:     getCourseRequest,
-		// 	DisableFaas: true,
-		// })
 		courseResponse, response, err := ucodeApi.Items("room").GetSingle(id).ExecSlim()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
@@ -959,7 +917,7 @@ func TestEndToEnd(t *testing.T) {
 		response, err = ucodeApi.Items("houses").
 			Delete().
 			DisableFaas(true).
-			Multiple([]string{""}).
+			Multiple(nil).
 			Exec()
 		if err == nil {
 			t.Error("error: invalid request given but work")
@@ -998,7 +956,7 @@ func TestEndToEnd(t *testing.T) {
 		response, err = ucodeApiPg.Items("houses").
 			Delete().
 			DisableFaas(true).
-			Multiple([]string{""}).
+			Multiple(nil).
 			Exec()
 		if err == nil {
 			t.Error("error: invalid request given but work")

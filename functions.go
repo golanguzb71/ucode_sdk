@@ -363,6 +363,12 @@ func (a *DeleteMultipleItem) Exec() (Response, error) {
 		"X-API-KEY":     appId,
 	}
 
+	if len(a.ids) == 0 {
+		response.Data = map[string]any{"message": "Error while deleting objects", "error": "ids is empty"}
+		response.Status = "error"
+		return response, fmt.Errorf("ids is empty")
+	}
+
 	_, err := DoRequest(url, http.MethodDelete, map[string]any{"ids": a.ids}, header)
 	if err != nil {
 		response.Data = map[string]any{"message": "Error while deleting objects", "error": err.Error()}
@@ -383,6 +389,10 @@ func (a *APIItem) GetSingle(id string) *GetSingleItem {
 }
 
 func (a *GetSingleItem) Exec() (ClientApiResponse, Response, error) {
+	if a.guid == "" {
+		return ClientApiResponse{}, Response{Status: "error", Data: map[string]any{"message": "guid is empty"}}, fmt.Errorf("guid is empty")
+	}
+
 	var (
 		response  = Response{Status: "done"}
 		getObject ClientApiResponse
@@ -835,8 +845,6 @@ func DoRequest(url string, method string, body any, headers map[string]string) (
 
 	respByte, err := io.ReadAll(resp.Body)
 
-	fmt.Println("resp byte", string(respByte))
-	fmt.Println("resp byte error", err)
 	return respByte, err
 }
 
