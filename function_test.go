@@ -23,15 +23,15 @@ func TestEndToEnd(t *testing.T) {
 		returnError = func(errorResponse ResponseError) string {
 			response = Response{
 				Status: "error",
-				Data:   map[string]interface{}{"message": errorResponse.ClientErrorMessage, "error": errorResponse.ErrorMessage, "description": errorResponse.Description},
+				Data:   map[string]any{"message": errorResponse.ClientErrorMessage, "error": errorResponse.ErrorMessage, "description": errorResponse.Description},
 			}
 			marshaledResponse, _ := json.Marshal(response)
 			return string(marshaledResponse)
 		}
-		housesMongo    []map[string]interface{}
-		housesPostgres []map[string]interface{}
-		roomsPostgres  []map[string]interface{}
-		roomsMongo     []map[string]interface{}
+		housesMongo    []map[string]any
+		housesPostgres []map[string]any
+		roomsPostgres  []map[string]any
+		roomsMongo     []map[string]any
 		mongoAppId     string
 		postgresAppId  string
 		roomsCount     = 4
@@ -119,7 +119,7 @@ func TestEndToEnd(t *testing.T) {
 	t.Run("createInMongo", func(t *testing.T) {
 		// --------------------------CreateObject------------------------------
 		// create houses
-		createHousesRequest := map[string]interface{}{
+		createHousesRequest := map[string]any{
 			"name":       "house",
 			"price":      15000,
 			"room_count": 5,
@@ -218,7 +218,7 @@ func TestEndToEnd(t *testing.T) {
 	t.Run("createInPostgres", func(t *testing.T) {
 		// --------------------------CreateObject------------------------------
 		// create houses
-		createHousesRequest := map[string]interface{}{
+		createHousesRequest := map[string]any{
 			"name":       "house",
 			"price":      15000,
 			"room_count": 5,
@@ -252,7 +252,7 @@ func TestEndToEnd(t *testing.T) {
 			A int
 			B func() // functions are not supported
 		}
-		_, _, err = ucodeApiPg.Items("houses").Create(map[string]interface{}{"guid": MyStruct{}}).Exec()
+		_, _, err = ucodeApiPg.Items("houses").Create(map[string]any{"guid": MyStruct{}}).Exec()
 		if err == nil {
 			t.Error("error: invalid request given but work")
 			return
@@ -314,7 +314,7 @@ func TestEndToEnd(t *testing.T) {
 
 	t.Run("createRoomInMongo", func(t *testing.T) {
 		// create rooms
-		createRoomRequest := map[string]interface{}{
+		createRoomRequest := map[string]any{
 			"name": "room",
 		}
 
@@ -379,7 +379,7 @@ func TestEndToEnd(t *testing.T) {
 
 	t.Run("createRoomInPostgres", func(t *testing.T) {
 		// create rooms
-		createRoomRequest := map[string]interface{}{
+		createRoomRequest := map[string]any{
 			"name": "room",
 		}
 
@@ -445,7 +445,7 @@ func TestEndToEnd(t *testing.T) {
 			return
 		}
 
-		updateReq := map[string]interface{}{
+		updateReq := map[string]any{
 			"guid":       housesMongo[0]["guid"],
 			"room_count": 10,
 		}
@@ -468,7 +468,7 @@ func TestEndToEnd(t *testing.T) {
 		assert.Equal(t, housesMongo[0]["guid"], cast.ToString(resp.Data.Data["guid"]))
 
 		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("invalid_table").Update(map[string]interface{}{"guid": "invalid_guid"}).ExecSingle()
+		_, _, err = ucodeApi.Items("invalid_table").Update(map[string]any{"guid": "invalid_guid"}).ExecSingle()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return
@@ -479,7 +479,7 @@ func TestEndToEnd(t *testing.T) {
 			A int
 			B func() // functions are not supported
 		}
-		_, _, err = ucodeApi.Items("invalid_table").Update(map[string]interface{}{"guid": MyStruct{}}).ExecSingle()
+		_, _, err = ucodeApi.Items("invalid_table").Update(map[string]any{"guid": MyStruct{}}).ExecSingle()
 		if err == nil {
 			t.Error("error: invalid request given but work")
 			return
@@ -493,7 +493,7 @@ func TestEndToEnd(t *testing.T) {
 			t.Errorf("error houses count = %d\nExpected count = %d", len(housesPostgres), housesCount)
 			return
 		}
-		updateReq := map[string]interface{}{
+		updateReq := map[string]any{
 			"guid":       housesPostgres[0]["guid"],
 			"room_count": 10,
 		}
@@ -545,7 +545,7 @@ func TestEndToEnd(t *testing.T) {
 		})
 
 		// Test with invalid parameters
-		_, _, err = ucodeApiPg.Items("invalid_table").Update(map[string]interface{}{"guid": "invalid_guid"}).ExecSingle()
+		_, _, err = ucodeApiPg.Items("invalid_table").Update(map[string]any{"guid": "invalid_guid"}).ExecSingle()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return
@@ -556,7 +556,7 @@ func TestEndToEnd(t *testing.T) {
 			A int
 			B func() // functions are not supported
 		}
-		_, _, err = ucodeApiPg.Items("invalid_table").Update(map[string]interface{}{"guid": MyStruct{}}).ExecSingle()
+		_, _, err = ucodeApiPg.Items("invalid_table").Update(map[string]any{"guid": MyStruct{}}).ExecSingle()
 		if err == nil {
 			t.Error("error: invalid request given but work")
 			return
@@ -575,13 +575,13 @@ func TestEndToEnd(t *testing.T) {
 	t.Run("MultipleUpdate in mongo", func(t *testing.T) {
 		// --------------------------MultipleUpdate------------------------------
 		var (
-			multipleUpdateRequest = []map[string]interface{}{}
+			multipleUpdateRequest = []map[string]any{}
 			ids                   = make([]string, len(housesMongo))
 		)
 
 		for i, house := range housesMongo {
 			ids[i] = cast.ToString(house["guid"])
-			multipleUpdateRequest = append(multipleUpdateRequest, map[string]interface{}{
+			multipleUpdateRequest = append(multipleUpdateRequest, map[string]any{
 				"guid":       cast.ToString(house["guid"]),
 				"room_count": 15,
 			})
@@ -631,7 +631,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("").Update(map[string]any{"objects": []map[string]interface{}{}}).ExecMultiple()
+		_, _, err = ucodeApi.Items("").Update(map[string]any{"objects": []map[string]any{}}).ExecMultiple()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return
@@ -652,13 +652,13 @@ func TestEndToEnd(t *testing.T) {
 	t.Run("MultipleUpdate in postgres", func(t *testing.T) {
 		// --------------------------MultipleUpdate------------------------------
 		var (
-			multipleUpdateRequest = []map[string]interface{}{}
+			multipleUpdateRequest = []map[string]any{}
 			ids                   = make([]string, len(housesPostgres))
 		)
 
 		for i, house := range housesPostgres {
 			ids[i] = cast.ToString(house["guid"])
-			multipleUpdateRequest = append(multipleUpdateRequest, map[string]interface{}{
+			multipleUpdateRequest = append(multipleUpdateRequest, map[string]any{
 				"guid":       cast.ToString(house["guid"]),
 				"room_count": 15,
 			})
@@ -708,7 +708,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		// Test with invalid parameters
-		_, _, err = ucodeApiPg.Items("").Update(map[string]any{"objects": []map[string]interface{}{}}).ExecMultiple()
+		_, _, err = ucodeApiPg.Items("").Update(map[string]any{"objects": []map[string]any{}}).ExecMultiple()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return

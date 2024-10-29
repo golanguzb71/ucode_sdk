@@ -68,7 +68,7 @@ type UcodeApis interface {
 	*/
 	Function() FunctionI
 	Config() *Config
-	DoRequest(url string, method string, body interface{}, headers map[string]string) ([]byte, error)
+	DoRequest(url string, method string, body any, headers map[string]string) ([]byte, error)
 }
 
 func NewSDK(cfg *Config) UcodeApis {

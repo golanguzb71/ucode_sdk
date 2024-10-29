@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	sdk "github.com/ucode-io/ucode_sdk"
 	"github.com/spf13/cast"
+	sdk "github.com/ucode-io/ucode_sdk"
 )
 
 var (
@@ -41,7 +41,7 @@ func Handle() http.HandlerFunc {
 			returnError   = func(errorResponse sdk.ResponseError) string {
 				response = sdk.Response{
 					Status: "error",
-					Data:   map[string]interface{}{"message": errorResponse.ClientErrorMessage, "error": errorResponse.ErrorMessage, "description": errorResponse.Description},
+					Data:   map[string]any{"message": errorResponse.ClientErrorMessage, "error": errorResponse.ErrorMessage, "description": errorResponse.Description},
 				}
 				marshaledResponse, _ := json.Marshal(response)
 				return string(marshaledResponse)
@@ -54,7 +54,7 @@ func Handle() http.HandlerFunc {
 			AuthBaseURL: authBaseURL,
 			ProjectId:   "462baeca-37b0-4355-addc-b8ae5d26995d",
 		})
-		body := map[string]interface{}{
+		body := map[string]any{
 			"title": fmt.Sprintf("%d", time.Now().Unix()),
 		}
 
@@ -99,7 +99,7 @@ func Handle() http.HandlerFunc {
 			GetList().
 			Page(1).
 			Limit(20).
-			Sort(map[string]interface{}{"title": 1}).
+			Sort(map[string]any{"title": 1}).
 			Exec()
 		if err != nil {
 			errorResponse.ClientErrorMessage = "Error on getting request body"
@@ -127,7 +127,7 @@ func Handle() http.HandlerFunc {
 		// 	GetList().
 		// 	Page(1).
 		// 	Limit(20).
-		// 	Sort(map[string]interface{}{"title": 1}).
+		// 	Sort(map[string]any{"title": 1}).
 		// 	Exec()
 		// if err != nil {
 		// 	errorResponse.ClientErrorMessage = "Error on getting request body"
@@ -165,8 +165,8 @@ func Handle() http.HandlerFunc {
 		// set timeout for request
 
 		registerBody := sdk.AuthRequest{
-			Body: map[string]interface{}{
-				"data": map[string]interface{}{
+			Body: map[string]any{
+				"data": map[string]any{
 					"type":           "phone",
 					"Name":           fmt.Sprintf("%s %d", "otashjkee", time.Now().Unix()),
 					"phone":          "+967000000001",
@@ -226,7 +226,7 @@ func Handle() http.HandlerFunc {
 	}
 }
 
-func handleResponse(w http.ResponseWriter, body interface{}, statusCode int) {
+func handleResponse(w http.ResponseWriter, body any, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 
 	bodyByte, err := json.Marshal(body)

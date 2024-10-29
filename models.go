@@ -2,8 +2,8 @@ package ucodesdk
 
 type (
 	Request struct {
-		Data     map[string]interface{} `json:"data"`
-		IsCached bool                   `json:"is_cached"`
+		Data     map[string]any `json:"data"`
+		IsCached bool           `json:"is_cached"`
 	}
 
 	Argument struct {
@@ -23,12 +23,12 @@ type (
 	}
 
 	Data struct {
-		AppId      string                 `json:"app_id"`
-		Method     string                 `json:"method"`
-		ObjectData map[string]interface{} `json:"object_data"`
-		ObjectIds  []string               `json:"object_ids"`
-		TableSlug  string                 `json:"table_slug"`
-		UserId     string                 `json:"user_id"`
+		AppId      string         `json:"app_id"`
+		Method     string         `json:"method"`
+		ObjectData map[string]any `json:"object_data"`
+		ObjectIds  []string       `json:"object_ids"`
+		TableSlug  string         `json:"table_slug"`
+		UserId     string         `json:"user_id"`
 	}
 )
 
@@ -38,7 +38,7 @@ type (
 	Datas struct {
 		Data struct {
 			Data struct {
-				Data map[string]interface{} `json:"data"`
+				Data map[string]any `json:"data"`
 			} `json:"data"`
 		} `json:"data"`
 	}
@@ -53,13 +53,13 @@ type (
 	}
 
 	ClientApiResp struct {
-		Response map[string]interface{} `json:"response"`
+		Response map[string]any `json:"response"`
 	}
 
 	Response struct {
-		Status string                 `json:"status"`
-		Error  string                 `json:"error"`
-		Data   map[string]interface{} `json:"data"`
+		Status string         `json:"status"`
+		Error  string         `json:"error"`
+		Data   map[string]any `json:"data"`
 	}
 
 	// GetListClientApiResponse This is get list api response >>>>> GET_LIST, GET_LIST_SLIM
@@ -72,13 +72,13 @@ type (
 	}
 
 	GetListClientApiResp struct {
-		Response []map[string]interface{} `json:"response"`
+		Response []map[string]any `json:"response"`
 	}
 	// GetListAggregationClientApiResponse  This is get list aggregation response
 	GetListAggregationClientApiResponse struct {
 		Data struct {
 			Data struct {
-				Data []map[string]interface{} `json:"data"`
+				Data []map[string]any `json:"data"`
 			} `json:"data"`
 		} `json:"data"`
 	}
@@ -88,8 +88,8 @@ type (
 		Status      string `json:"status"`
 		Description string `json:"description"`
 		Data        struct {
-			TableSlug string                 `json:"table_slug"`
-			Data      map[string]interface{} `json:"data"`
+			TableSlug string         `json:"table_slug"`
+			Data      map[string]any `json:"data"`
 		} `json:"data"`
 	}
 
@@ -99,27 +99,27 @@ type (
 		Description string `json:"description"`
 		Data        struct {
 			Data struct {
-				Objects []map[string]interface{} `json:"objects"`
+				Objects []map[string]any `json:"objects"`
 			} `json:"data"`
 		} `json:"data"`
 	}
 
 	ResponseError struct {
 		StatusCode         int
-		Description        interface{}
+		Description        any
 		ErrorMessage       string
 		ClientErrorMessage string
 	}
 )
 
 type ActionBody struct {
-	Body        map[string]interface{} `json:"data"`
-	DisableFaas bool                   `json:"disable_faas"`
+	Body        map[string]any `json:"data"`
+	DisableFaas bool           `json:"disable_faas"`
 }
 
 type AuthRequest struct {
-	Body    map[string]interface{} `json:"data"`
-	Headers map[string]string      `json:"headers"`
+	Body    map[string]any    `json:"data"`
+	Headers map[string]string `json:"headers"`
 }
 
 type APIItem struct {
