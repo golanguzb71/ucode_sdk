@@ -10,7 +10,6 @@ UCode SDK is a Go package that provides a simple and efficient way to interact w
    - [Retrieving Objects](#retrieving-objects)
    - [Updating Objects](#updating-objects)
    - [Deleting Objects](#deleting-objects)
-   - [Managing Many-to-Many Relationships](#managing-many-to-many-relationships)
 4. [Error Handling](#error-handling)
 5. [Examples](#examples)
 
