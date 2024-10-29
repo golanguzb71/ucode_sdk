@@ -579,10 +579,6 @@ func TestEndToEnd(t *testing.T) {
 			assert.Equal(t, housesPostgres[0]["guid"], cast.ToString(houseInfoo.Data.Data.Response["guid"]))
 
 			// Test with invalid Request parameters
-			type MyStruct struct {
-				A int
-				B func() // functions are not supported
-			}
 			_, _, err = ucodeApi.Items("invalid_table").GetSingle("").Exec()
 			if err == nil {
 				t.Error("error: invalid request given but work")
@@ -781,731 +777,411 @@ func TestEndToEnd(t *testing.T) {
 		}
 	})
 
-	// t.Run("GetListAggregation in mongo", func(t *testing.T) {
-	// 	// --------------------------GetListAggregation FOR MongoDB------------------------------
-	// 	getListAggregationPipeline := []map[string]interface{}{
-	// 		{"$match": map[string]interface{}{
-	// 			"price": map[string]interface{}{
-	// 				"$exists": true,
-	// 				"$eq":     15000,
-	// 			},
-	// 		}},
-	// 	}
-	// 	getListAggregationList, response, err := ucodeApi.GetListAggregation(&Argument{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     Request{Data: map[string]interface{}{"pipelines": getListAggregationPipeline}},
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "error on GetListAggregation"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-
-	// 	if len(getListAggregationList.Data.Data.Data) != housesCount {
-	// 		t.Errorf("error on took houses count = %d\nExpected = %d", len(getListAggregationList.Data.Data.Data), housesCount)
-	// 	}
-
-	// 	// Test with invalid parameters
-	// 	_, _, err = ucodeApi.GetListAggregation(&Argument{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     Request{},
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err == nil {
-	// 		t.Error("Expected error for invalid parameters, got nil")
-	// 		return
-	// 	}
-
-	// 	// Test with invalid request parameters
-	// 	type MyStruct struct {
-	// 		A int
-	// 		B func() // functions are not supported
-	// 	}
-	// 	_, response, err = ucodeApi.GetListAggregation(&Argument{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     Request{Data: map[string]interface{}{"pipelines": MyStruct{}}},
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err == nil {
-	// 		t.Error("error: invalid request given but work")
-	// 		return
-	// 	}
-	// })
-
-	// t.Run("AppendManyToMany in mongo", func(t *testing.T) {
-	// 	// --------------------------AppendManyToMany------------------------------
-	// 	for i := 0; i < housesCount; i++ {
-	// 		var roomIds = []string{cast.ToString(roomsMongo[i]["guid"]), cast.ToString(roomsMongo[i+1]["guid"])}
-
-	// 		appendManyToManyRequest := Request{
-	// 			Data: map[string]interface{}{
-	// 				"table_from": "houses",                              // main table
-	// 				"table_to":   "room",                                // relation table
-	// 				"id_from":    cast.ToString(housesMongo[i]["guid"]), // main table id
-	// 				"id_to":      roomIds,                               // relation table id
-	// 			},
-	// 		}
-	// 		response, err := ucodeApi.AppendManyToMany(&Argument{
-	// 			AppId:       mongoAppId,
-	// 			TableSlug:   "houses",
-	// 			Request:     appendManyToManyRequest,
-	// 			DisableFaas: true,
-	// 		})
-	// 		if err != nil {
-	// 			errorResponse.Description = response.Data["description"]
-	// 			errorResponse.ClientErrorMessage = "Error while AppendManyToMany"
-	// 			errorResponse.ErrorMessage = err.Error()
-	// 			errorResponse.StatusCode = http.StatusInternalServerError
-	// 			t.Error(returnError(errorResponse))
-	// 			return
-	// 		}
-
-	// 		if response.Status != "done" {
-	// 			t.Error(response.Status, response.Data, response.Error)
-	// 		}
-
-	// 		// check appended correctly
-	// 		// --------------------------GetSingle------------------------------
-	// 		// get the house info
-	// 		houseInfoo, response, err := ucodeApi.GetSingle(&Argument{
-	// 			AppId:       mongoAppId,
-	// 			TableSlug:   "houses",
-	// 			Request:     Request{Data: map[string]interface{}{"guid": cast.ToString(housesMongo[i]["guid"])}},
-	// 			DisableFaas: true,
-	// 		})
-	// 		if err != nil {
-	// 			errorResponse.Description = response.Data["description"]
-	// 			errorResponse.ClientErrorMessage = "Error on getting single"
-	// 			errorResponse.ErrorMessage = err.Error()
-	// 			errorResponse.StatusCode = http.StatusInternalServerError
-	// 			t.Error(returnError(errorResponse))
-	// 			return
-	// 		}
-
-	// 		if response.Status != "done" {
-	// 			t.Error(response.Status, response.Data, response.Error)
-	// 		}
-
-	// 		if len(houseInfoo.Data.Data.Response) == 0 {
-	// 			t.Errorf("error GetSingle method not return data")
-	// 		}
-
-	// 		// check appended correctly
-	// 		assert.Equal(t, roomIds, cast.ToStringSlice(houseInfoo.Data.Data.Response["room_ids"]))
-
-	// 		// Test with invalid parameters
-	// 		type MyStruct struct {
-	// 			A int
-	// 			B func() // functions are not supported
-	// 		}
-	// 		_, err = ucodeApi.AppendManyToMany(&Argument{
-	// 			AppId:       mongoAppId,
-	// 			TableSlug:   "houses",
-	// 			Request:     Request{Data: map[string]interface{}{"guid": MyStruct{}}},
-	// 			DisableFaas: true,
-	// 		})
-	// 		if err == nil {
-	// 			t.Error("error: invalid request given but work")
-	// 			return
-	// 		}
-	// 	}
-	// })
-
-	// t.Run("AppendManyToMany in postgres", func(t *testing.T) {
-	// 	// --------------------------AppendManyToMany------------------------------
-	// 	for i := 0; i < housesCount; i++ {
-	// 		// --------------------------GetSingle------------------------------
-	// 		// get the house info
-	// 		houseInfoo, response, err := ucodeApi.GetSingle(&Argument{
-	// 			AppId:       postgresAppId,
-	// 			TableSlug:   "houses",
-	// 			Request:     Request{Data: map[string]interface{}{"guid": cast.ToString(housesPostgres[i]["guid"])}},
-	// 			DisableFaas: true,
-	// 		})
-	// 		if err != nil {
-	// 			errorResponse.Description = response.Data["description"]
-	// 			errorResponse.ClientErrorMessage = "Error on getting single"
-	// 			errorResponse.ErrorMessage = err.Error()
-	// 			errorResponse.StatusCode = http.StatusInternalServerError
-	// 			t.Error(returnError(errorResponse))
-	// 			return
-	// 		}
-
-	// 		if response.Status != "done" {
-	// 			t.Error(response.Status, response.Data, response.Error)
-	// 		}
-
-	// 		if len(houseInfoo.Data.Data.Response) == 0 {
-	// 			t.Errorf("error GetSingle method not return data")
-	// 		}
-
-	// 		var roomIds = []string{cast.ToString(roomsPostgres[i]["guid"]), cast.ToString(roomsPostgres[i+1]["guid"])}
-	// 		roomIds = append(roomIds, cast.ToStringSlice(houseInfoo.Data.Data.Response["room_ids"])...)
-
-	// 		appendManyToManyRequest := Request{
-	// 			Data: map[string]interface{}{
-	// 				"guid":     cast.ToString(housesPostgres[i]["guid"]),
-	// 				"room_ids": roomIds,
-	// 			},
-	// 		}
-	// 		_, response, err = ucodeApi.UpdateObject(&Argument{
-	// 			AppId:       postgresAppId,
-	// 			TableSlug:   "houses",
-	// 			Request:     appendManyToManyRequest,
-	// 			DisableFaas: true,
-	// 		})
-	// 		if err != nil {
-	// 			errorResponse.Description = response.Data["description"]
-	// 			errorResponse.ClientErrorMessage = "Error while AppendManyToMany"
-	// 			errorResponse.ErrorMessage = err.Error()
-	// 			errorResponse.StatusCode = http.StatusInternalServerError
-	// 			t.Error(returnError(errorResponse))
-	// 			return
-	// 		}
-
-	// 		if response.Status != "done" {
-	// 			t.Error(response.Status, response.Data, response.Error)
-	// 		}
-
-	// 		// check appended correctly
-	// 		// --------------------------GetSingle------------------------------
-	// 		// get the house info
-	// 		houseInfoo, response, err = ucodeApi.GetSingle(&Argument{
-	// 			AppId:       postgresAppId,
-	// 			TableSlug:   "houses",
-	// 			Request:     Request{Data: map[string]interface{}{"guid": cast.ToString(housesPostgres[i]["guid"])}},
-	// 			DisableFaas: true,
-	// 		})
-	// 		if err != nil {
-	// 			errorResponse.Description = response.Data["description"]
-	// 			errorResponse.ClientErrorMessage = "Error on getting single"
-	// 			errorResponse.ErrorMessage = err.Error()
-	// 			errorResponse.StatusCode = http.StatusInternalServerError
-	// 			t.Error(returnError(errorResponse))
-	// 			return
-	// 		}
-
-	// 		if response.Status != "done" {
-	// 			t.Error(response.Status, response.Data, response.Error)
-	// 		}
-
-	// 		if len(houseInfoo.Data.Data.Response) == 0 {
-	// 			t.Errorf("error GetSingle method not return data")
-	// 		}
-
-	// 		// check appended correctly
-	// 		assert.Equal(t, roomIds, cast.ToStringSlice(houseInfoo.Data.Data.Response["room_ids"]))
-	// 	}
-	// })
-
-	// t.Run("GetSingleSlim in mongo", func(t *testing.T) {
-	// 	// --------------------------GetSingleSlim------------------------------
-	// 	var id = cast.ToString(roomsMongo[0]["guid"])
-
-	// 	getCourseRequest := Request{Data: map[string]interface{}{"guid": id}}
-	// 	courseResponse, response, err := ucodeApi.GetSingleSlim(&Argument{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "room",
-	// 		Request:     getCourseRequest,
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error on get-single course"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-
-	// 	// check values are correct
-	// 	assert.Equal(t, "room", courseResponse.Data.Data.Response["name"])
-
-	// 	// Test with invalid parameters
-	// 	_, _, err = ucodeApi.GetSingleSlim(&Argument{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     Request{Data: map[string]interface{}{"guid": "invalid_guid"}},
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err == nil {
-	// 		t.Error("Expected error for invalid parameters, got nil")
-	// 		return
-	// 	}
-	// })
-
-	// t.Run("GetSingleSlim in postgres", func(t *testing.T) {
-	// 	// --------------------------GetSingleSlim------------------------------
-	// 	var id = cast.ToString(roomsPostgres[0]["guid"])
-
-	// 	getCourseRequest := Request{Data: map[string]interface{}{"guid": id}}
-	// 	courseResponse, response, err := ucodeApi.GetSingleSlim(&Argument{
-	// 		AppId:       postgresAppId,
-	// 		TableSlug:   "room",
-	// 		Request:     getCourseRequest,
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error on get-single course"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-
-	// 	// check values are correct
-	// 	assert.Equal(t, "room", courseResponse.Data.Data.Response["name"])
-
-	// 	// Test with invalid parameters
-	// 	_, _, err = ucodeApi.GetSingleSlim(&Argument{
-	// 		AppId:       postgresAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     Request{Data: map[string]interface{}{"guid": "invalid_guid"}},
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err == nil {
-	// 		t.Error("Expected error for invalid parameters, got nil")
-	// 		return
-	// 	}
-	// })
-
-	// t.Run("DeleteManyToMany in mongo", func(t *testing.T) {
-	// 	// --------------------------GetSingle------------------------------
-	// 	// get the house info
-	// 	houseInfoo, response, err := ucodeApi.GetSingle(&Argument{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     Request{Data: map[string]interface{}{"guid": cast.ToString(housesMongo[0]["guid"])}},
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error on getting single"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-
-	// 	if len(houseInfoo.Data.Data.Response) == 0 {
-	// 		t.Errorf("error GetSingle method not return data")
-	// 	}
-
-	// 	var (
-	// 		roomids = append([]string{}, cast.ToStringSlice(houseInfoo.Data.Data.Response["room_ids"])[1:]...)
-	// 		want    = cast.ToStringSlice(houseInfoo.Data.Data.Response["room_ids"])[:1]
-	// 	)
-
-	// 	// --------------------------DeleteManyToMany------------------------------
-	// 	for i := 0; i < housesCount; i++ {
-	// 		var houseId = cast.ToString(housesMongo[i]["guid"])
-
-	// 		deleteManyToManyRequest := Request{
-	// 			Data: map[string]interface{}{
-	// 				"table_from": "houses", // main table
-	// 				"table_to":   "room",   // relation table
-	// 				"id_from":    houseId,  // main table id
-	// 				"id_to":      roomids,  // relation table id
-	// 			},
-	// 		}
-	// 		response, err := ucodeApi.DeleteManyToMany(&Argument{
-	// 			AppId:       mongoAppId,
-	// 			TableSlug:   "houses",
-	// 			Request:     deleteManyToManyRequest,
-	// 			DisableFaas: true,
-	// 		})
-	// 		if err != nil {
-	// 			errorResponse.Description = response.Data["description"]
-	// 			errorResponse.ClientErrorMessage = "Error while AppendManyToMany"
-	// 			errorResponse.ErrorMessage = err.Error()
-	// 			errorResponse.StatusCode = http.StatusInternalServerError
-	// 			t.Error(returnError(errorResponse))
-	// 			return
-	// 		}
-
-	// 		if response.Status != "done" {
-	// 			t.Error(response.Status, response.Data, response.Error)
-	// 		}
-
-	// 		// --------------------------GetSingle------------------------------
-	// 		// get the house info
-	// 		houseInfoo, response, err := ucodeApi.GetSingle(&Argument{
-	// 			AppId:       mongoAppId,
-	// 			TableSlug:   "houses",
-	// 			Request:     Request{Data: map[string]interface{}{"guid": cast.ToString(housesMongo[0]["guid"])}},
-	// 			DisableFaas: true,
-	// 		})
-	// 		if err != nil {
-	// 			errorResponse.Description = response.Data["description"]
-	// 			errorResponse.ClientErrorMessage = "Error on getting single"
-	// 			errorResponse.ErrorMessage = err.Error()
-	// 			errorResponse.StatusCode = http.StatusInternalServerError
-	// 			t.Error(returnError(errorResponse))
-	// 			return
-	// 		}
-
-	// 		if response.Status != "done" {
-	// 			t.Error(response.Status, response.Data, response.Error)
-	// 		}
-
-	// 		if len(houseInfoo.Data.Data.Response) == 0 {
-	// 			t.Errorf("error GetSingle method not return data")
-	// 		}
-
-	// 		// check result is correct
-	// 		assert.Equal(t, want, cast.ToStringSlice(houseInfoo.Data.Data.Response["room_ids"]))
-
-	// 		// Test with invalid request parameters
-	// 		type MyStruct struct {
-	// 			A int
-	// 			B func() // functions are not supported
-	// 		}
-	// 		response, err = ucodeApi.DeleteManyToMany(&Argument{
-	// 			AppId:       mongoAppId,
-	// 			TableSlug:   "houses",
-	// 			Request:     Request{Data: map[string]interface{}{"guid": MyStruct{}}},
-	// 			DisableFaas: true,
-	// 		})
-	// 		if err == nil {
-	// 			t.Error("error: invalid request given but work")
-	// 			return
-	// 		}
-	// 	}
-	// })
-
-	// t.Run("Delete in mongo", func(t *testing.T) {
-	// 	// --------------------------Delete------------------------------
-	// 	DeleteRequest := Request{Data: map[string]interface{}{"guid": cast.ToString(housesMongo[0]["guid"])}}
-	// 	response, err := ucodeApi.Delete(&Argument{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     DeleteRequest,
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error while Delete"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-	// })
-
-	// t.Run("Delete in postgres", func(t *testing.T) {
-	// 	// --------------------------Delete------------------------------
-	// 	DeleteRequest := Request{Data: map[string]interface{}{"guid": cast.ToString(housesPostgres[0]["guid"])}}
-	// 	response, err := ucodeApi.Delete(&Argument{
-	// 		AppId:       postgresAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     DeleteRequest,
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error while Delete"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-	// })
-
-	// t.Run("MultipleDelete in mongo", func(t *testing.T) {
-	// 	// --------------------------MultipleDelete------------------------------
-	// 	// deleting from houses
-	// 	var (
-	// 		idMultipleDeleteHouses = []string{}
-	// 	)
-	// 	for _, val := range housesMongo {
-	// 		idMultipleDeleteHouses = append(idMultipleDeleteHouses, cast.ToString(val["guid"]))
-	// 	}
-
-	// 	MultipleDeleteHouses := Request{Data: map[string]interface{}{"ids": idMultipleDeleteHouses}}
-	// 	response, err := ucodeApi.MultipleDelete(&Argument{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     MultipleDeleteHouses,
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error while Delete"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-
-	// 	// Test with invalid request parameters
-	// 	type MyStruct struct {
-	// 		A int
-	// 		B func() // functions are not supported
-	// 	}
-	// 	response, err = ucodeApi.MultipleDelete(&Argument{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     Request{Data: map[string]interface{}{"guid": MyStruct{}}},
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err == nil {
-	// 		t.Error("error: invalid request given but work")
-	// 		return
-	// 	}
-	// })
-
-	// t.Run("MultipleDelete in postgres", func(t *testing.T) {
-	// 	// --------------------------MultipleDelete------------------------------
-	// 	// deleting from houses
-	// 	var (
-	// 		idMultipleDeleteHouses = []string{}
-	// 	)
-	// 	for _, val := range housesPostgres {
-	// 		idMultipleDeleteHouses = append(idMultipleDeleteHouses, cast.ToString(val["guid"]))
-	// 	}
-
-	// 	MultipleDeleteHouses := Request{Data: map[string]interface{}{"ids": idMultipleDeleteHouses}}
-	// 	response, err := ucodeApi.MultipleDelete(&Argument{
-	// 		AppId:       postgresAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     MultipleDeleteHouses,
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error while Delete"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-
-	// 	// Test with invalid request parameters
-	// 	type MyStruct struct {
-	// 		A int
-	// 		B func() // functions are not supported
-	// 	}
-	// 	response, err = ucodeApi.MultipleDelete(&Argument{
-	// 		AppId:       postgresAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     Request{Data: map[string]interface{}{"guid": MyStruct{}}},
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err == nil {
-	// 		t.Error("error: invalid request given but work")
-	// 		return
-	// 	}
-	// })
-
-	// t.Run("MultipleDelete in mongo", func(t *testing.T) {
-	// 	// --------------------------MultipleDelete------------------------------
-	// 	// deleting from rooms
-	// 	var (
-	// 		idMultipleDeleteRoom = []string{}
-	// 	)
-	// 	for _, val := range roomsMongo {
-	// 		idMultipleDeleteRoom = append(idMultipleDeleteRoom, cast.ToString(val["guid"]))
-	// 	}
-
-	// 	MultipleDeleteRooms := Request{Data: map[string]interface{}{"ids": idMultipleDeleteRoom}}
-	// 	response, err := ucodeApi.MultipleDelete(&Argument{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "room",
-	// 		Request:     MultipleDeleteRooms,
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error while Delete"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-	// })
-
-	// t.Run("MultipleDelete in postgres", func(t *testing.T) {
-	// 	// --------------------------MultipleDelete------------------------------
-	// 	// deleting from rooms
-	// 	var (
-	// 		idMultipleDeleteRoom = []string{}
-	// 	)
-	// 	for _, val := range roomsPostgres {
-	// 		idMultipleDeleteRoom = append(idMultipleDeleteRoom, cast.ToString(val["guid"]))
-	// 	}
-
-	// 	MultipleDeleteRooms := Request{Data: map[string]interface{}{"ids": idMultipleDeleteRoom}}
-	// 	response, err := ucodeApi.MultipleDelete(&Argument{
-	// 		AppId:       postgresAppId,
-	// 		TableSlug:   "room",
-	// 		Request:     MultipleDeleteRooms,
-	// 		DisableFaas: true,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error while Delete"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-	// })
-
-	// t.Run("Checking all houses were deleted", func(t *testing.T) {
-	// 	// --------------------------GetList------------------------------
-	// 	// getting houses in mongo
-	// 	ExistObject, response, err := ucodeApi.GetList(&ArgumentWithPegination{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     Request{Data: map[string]interface{}{}},
-	// 		DisableFaas: true,
-	// 		Limit:       100000,
-	// 		Page:        1,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error on useing GetList method"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-
-	// 	if len(ExistObject.Data.Data.Response) != 0 {
-	// 		t.Errorf("error on not all houses deleted\nHave count = %d", len(ExistObject.Data.Data.Response))
-	// 	}
-
-	// 	// --------------------------GetList------------------------------
-	// 	// getting houses in postgres
-	// 	ExistObject, response, err = ucodeApi.GetList(&ArgumentWithPegination{
-	// 		AppId:       postgresAppId,
-	// 		TableSlug:   "houses",
-	// 		Request:     Request{Data: map[string]interface{}{}},
-	// 		DisableFaas: true,
-	// 		Limit:       100000,
-	// 		Page:        1,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error on useing GetList method"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-
-	// 	if len(ExistObject.Data.Data.Response) != 0 {
-	// 		t.Errorf("error on not all houses deleted\nHave count = %d", len(ExistObject.Data.Data.Response))
-	// 	}
-	// })
-
-	// t.Run("Checking all rooms were deleted", func(t *testing.T) {
-	// 	// --------------------------GetList------------------------------
-	// 	// getting houses in mongo
-	// 	ExistObject, response, err := ucodeApi.GetList(&ArgumentWithPegination{
-	// 		AppId:       mongoAppId,
-	// 		TableSlug:   "room",
-	// 		Request:     Request{Data: map[string]interface{}{}},
-	// 		DisableFaas: true,
-	// 		Limit:       100000,
-	// 		Page:        1,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error on useing GetList method"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-
-	// 	if len(ExistObject.Data.Data.Response) != 0 {
-	// 		t.Errorf("error on not all rooms deleted\nHave count = %d", len(ExistObject.Data.Data.Response))
-	// 	}
-
-	// 	// --------------------------GetList------------------------------
-	// 	// getting houses in postgres
-	// 	ExistObject, response, err = ucodeApi.GetList(&ArgumentWithPegination{
-	// 		AppId:       postgresAppId,
-	// 		TableSlug:   "room",
-	// 		Request:     Request{Data: map[string]interface{}{}},
-	// 		DisableFaas: true,
-	// 		Limit:       100000,
-	// 		Page:        1,
-	// 	})
-	// 	if err != nil {
-	// 		errorResponse.Description = response.Data["description"]
-	// 		errorResponse.ClientErrorMessage = "Error on useing GetList method"
-	// 		errorResponse.ErrorMessage = err.Error()
-	// 		errorResponse.StatusCode = http.StatusInternalServerError
-	// 		t.Error(returnError(errorResponse))
-	// 		return
-	// 	}
-
-	// 	if response.Status != "done" {
-	// 		t.Error(response.Status, response.Data, response.Error)
-	// 	}
-
-	// 	if len(ExistObject.Data.Data.Response) != 0 {
-	// 		t.Errorf("error on not all room deleted\nHave count = %d", len(ExistObject.Data.Data.Response))
-	// 	}
-	// })
+	t.Run("GetListAggregation in mongo", func(t *testing.T) {
+		// --------------------------GetListAggregation FOR MongoDB------------------------------
+		getListAggregationPipeline := map[string]interface{}{"$match": map[string]interface{}{
+			"price": map[string]interface{}{
+				"$exists": true,
+				"$eq":     15000,
+			},
+		},
+		}
+		getListAggregationList, response, err := ucodeApi.Items("houses").
+			GetList().
+			Pipelines(getListAggregationPipeline).
+			ExecAggregation()
+
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "error on GetListAggregation"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+
+		if len(getListAggregationList.Data.Data.Data) != housesCount {
+			t.Errorf("error on took houses count = %d\nExpected = %d", len(getListAggregationList.Data.Data.Data), housesCount)
+		}
+
+		// Test with invalid parameters
+		_, _, err = ucodeApi.Items("houses").
+			GetList().
+			Pipelines(map[string]any{}).
+			ExecAggregation()
+		if err == nil {
+			t.Error("Expected error for invalid parameters, got nil")
+			return
+		}
+
+		// Test with invalid request parameters
+		type MyStruct struct {
+			A int
+			B func() // functions are not supported
+		}
+		_, response, err = ucodeApi.Items("houses").
+			GetList().
+			Pipelines(map[string]any{"pipelines": MyStruct{}}).
+			ExecAggregation()
+		if err == nil {
+			t.Error("error: invalid request given but work")
+			return
+		}
+	})
+
+	t.Run("GetSingleSlim in mongo", func(t *testing.T) {
+		// --------------------------GetSingleSlim------------------------------
+		var id = cast.ToString(roomsMongo[0]["guid"])
+
+		// getCourseRequest := Request{Data: map[string]interface{}{"guid": id}}
+		// courseResponse, response, err := ucodeApi.GetSingleSlim(&Argument{
+		// 	AppId:       mongoAppId,
+		// 	TableSlug:   "room",
+		// 	Request:     getCourseRequest,
+		// 	DisableFaas: true,
+		// })
+		courseResponse, response, err := ucodeApi.Items("room").GetSingle(id).ExecSlim()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error on get-single course"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+
+		// check values are correct
+		assert.Equal(t, "room", courseResponse.Data.Data.Response["name"])
+
+		// Test with invalid parameters
+		_, _, err = ucodeApi.Items("houses").GetSingle("invalid_guid").ExecSlim()
+		if err == nil {
+			t.Error("Expected error for invalid parameters, got nil")
+			return
+		}
+	})
+
+	t.Run("GetSingleSlim in postgres", func(t *testing.T) {
+		// --------------------------GetSingleSlim------------------------------
+		var id = cast.ToString(roomsPostgres[0]["guid"])
+
+		courseResponse, response, err := ucodeApi.Items("room").GetSingle(id).ExecSlim()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error on get-single course"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+
+		// check values are correct
+		assert.Equal(t, "room", courseResponse.Data.Data.Response["name"])
+
+		// Test with invalid parameters
+		_, _, err = ucodeApi.Items("houses").GetSingle("invalid_guid").ExecSlim()
+		if err == nil {
+			t.Error("Expected error for invalid parameters, got nil")
+			return
+		}
+	})
+
+	t.Run("DeleteManyToMany in mongo", func(t *testing.T) {
+		// --------------------------GetSingle------------------------------
+		// get the house info
+		houseInfoo, response, err := ucodeApi.Items("houses").
+			GetSingle(cast.ToString(housesMongo[0]["guid"])).
+			Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error on getting single"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+
+		if len(houseInfoo.Data.Data.Response) == 0 {
+			t.Errorf("error GetSingle method not return data")
+		}
+	})
+
+	t.Run("Delete in mongo", func(t *testing.T) {
+		// --------------------------Delete------------------------------
+		response, err := ucodeApi.Items("houses").
+			Delete().
+			DisableFaas(true).
+			Single(cast.ToString(housesMongo[0]["guid"])).
+			Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error while Delete"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+	})
+
+	t.Run("Delete in postgres", func(t *testing.T) {
+		// --------------------------Delete------------------------------
+		response, err := ucodeApi.Items("houses").
+			Delete().DisableFaas(true).
+			Single(cast.ToString(housesPostgres[0]["guid"])).
+			Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error while Delete"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+	})
+
+	t.Run("MultipleDelete in mongo", func(t *testing.T) {
+		// --------------------------MultipleDelete------------------------------
+		// deleting from houses
+		var (
+			idMultipleDeleteHouses = []string{}
+		)
+		for _, val := range housesMongo {
+			idMultipleDeleteHouses = append(idMultipleDeleteHouses, cast.ToString(val["guid"]))
+		}
+
+		response, err := ucodeApi.Items("houses").
+			Delete().DisableFaas(true).
+			Multiple(idMultipleDeleteHouses).
+			Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error while Delete"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+
+		// Test with invalid request parameters
+		response, err = ucodeApi.Items("houses").
+			Delete().
+			DisableFaas(true).
+			Multiple([]string{""}).
+			Exec()
+		if err == nil {
+			t.Error("error: invalid request given but work")
+			return
+		}
+	})
+
+	t.Run("MultipleDelete in postgres", func(t *testing.T) {
+		// --------------------------MultipleDelete------------------------------
+		// deleting from houses
+		var (
+			idMultipleDeleteHouses = []string{}
+		)
+		for _, val := range housesPostgres {
+			idMultipleDeleteHouses = append(idMultipleDeleteHouses, cast.ToString(val["guid"]))
+		}
+		response, err := ucodeApi.Items("houses").
+			Delete().
+			DisableFaas(true).
+			Multiple(idMultipleDeleteHouses).
+			Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error while Delete"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+
+		// Test with invalid request parameters
+		response, err = ucodeApi.Items("houses").
+			Delete().
+			DisableFaas(true).
+			Multiple([]string{""}).
+			Exec()
+		if err == nil {
+			t.Error("error: invalid request given but work")
+			return
+		}
+	})
+
+	t.Run("MultipleDelete in mongo", func(t *testing.T) {
+		// --------------------------MultipleDelete------------------------------
+		// deleting from rooms
+		var (
+			idMultipleDeleteRoom = []string{}
+		)
+		for _, val := range roomsMongo {
+			idMultipleDeleteRoom = append(idMultipleDeleteRoom, cast.ToString(val["guid"]))
+		}
+
+		response, err := ucodeApi.Items("room").
+			Delete().
+			DisableFaas(true).
+			Multiple(idMultipleDeleteRoom).
+			Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error while Delete"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+	})
+
+	t.Run("MultipleDelete in postgres", func(t *testing.T) {
+		// --------------------------MultipleDelete------------------------------
+		// deleting from rooms
+		var (
+			idMultipleDeleteRoom = []string{}
+		)
+		for _, val := range roomsPostgres {
+			idMultipleDeleteRoom = append(idMultipleDeleteRoom, cast.ToString(val["guid"]))
+		}
+
+		response, err := ucodeApi.Items("room").
+			Delete().
+			DisableFaas(true).
+			Multiple(idMultipleDeleteRoom).
+			Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error while Delete"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+	})
+
+	t.Run("Checking all houses were deleted", func(t *testing.T) {
+		// --------------------------GetList------------------------------
+		// getting houses in mongo
+		ExistObject, response, err := ucodeApi.Items("houses").GetList().Page(1).Limit(100000).Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error on useing GetList method"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+
+		if len(ExistObject.Data.Data.Response) != 0 {
+			t.Errorf("error on not all houses deleted\nHave count = %d", len(ExistObject.Data.Data.Response))
+		}
+
+		// --------------------------GetList------------------------------
+		// getting houses in postgres
+		ExistObject, response, err = ucodeApi.Items("houses").
+			GetList().
+			Page(1).
+			Limit(100000).
+			Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error on useing GetList method"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+
+		if len(ExistObject.Data.Data.Response) != 0 {
+			t.Errorf("error on not all houses deleted\nHave count = %d", len(ExistObject.Data.Data.Response))
+		}
+	})
+
+	t.Run("Checking all rooms were deleted", func(t *testing.T) {
+		// --------------------------GetList------------------------------
+		// getting houses in mongo
+		ExistObject, response, err := ucodeApi.Items("room").GetList().Page(1).Limit(100000).Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error on useing GetList method"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+
+		if len(ExistObject.Data.Data.Response) != 0 {
+			t.Errorf("error on not all rooms deleted\nHave count = %d", len(ExistObject.Data.Data.Response))
+		}
+
+		// --------------------------GetList------------------------------
+		// getting houses in postgres
+		ExistObject, response, err = ucodeApi.Items("room").GetList().Page(1).Limit(100000).Exec()
+		if err != nil {
+			errorResponse.Description = response.Data["description"]
+			errorResponse.ClientErrorMessage = "Error on useing GetList method"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			t.Error(returnError(errorResponse))
+			return
+		}
+
+		if response.Status != "done" {
+			t.Error(response.Status, response.Data, response.Error)
+		}
+
+		if len(ExistObject.Data.Data.Response) != 0 {
+			t.Errorf("error on not all room deleted\nHave count = %d", len(ExistObject.Data.Data.Response))
+		}
+	})
 }

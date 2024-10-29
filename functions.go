@@ -10,50 +10,102 @@ import (
 	"os"
 )
 
-type UcodeApis2 interface {
+type UcodeApis interface {
+	/*
+		Items returns an interface to interact with items within a specified collection.
+
+		Items are objects within a Collection which contain values for one or more fields.
+		Each item represents a record in your database, allowing CRUD operations.
+
+		Usage:
+		sdk.Items("collection_name").
+			Create(data).
+			Exec()
+
+		This enables you to manage items in collections across databases, such as MongoDB and PostgreSQL.
+	*/
 	Items(collection string) ItemsI
+	/*
+		Auth returns an interface for handling user authentication and authorization operations.
+
+		Use this interface to manage user registration, login, password resets, and other
+		authentication-related tasks.
+
+		Usage:
+		sdk.Auth().
+			Register(data).
+			Exec()
+
+		Supports various authentication workflows compatible with both MongoDB and PostgreSQL.
+	*/
 	Auth() AuthI
+	/*
+		Files returns an interface for file management operations.
+
+		Use this interface to upload, delete, or manage files stored on the server, allowing
+		for easy integration of file-based data alongside other operations.
+
+		Usage:
+		sdk.Files().
+			Upload("file_path").
+			Exec()
+
+		Designed for compatibility with both MongoDB and PostgreSQL for consistent file management.
+	*/
 	Files() FilesI
+	/*
+		Function returns an interface for invoking server-side functions.
+
+		This interface enables the execution of predefined or custom server functions,
+		facilitating complex data processing and automation workflows.
+
+		Usage:
+		sdk.Function().
+			InvokeByPath("function_path").
+			Exec()
+
+		Supported across MongoDB and PostgreSQL, providing flexibility for backend processing.
+	*/
 	Function() FunctionI
 	Config() *Config
 	DoRequest(url string, method string, body interface{}, headers map[string]string) ([]byte, error)
 }
 
-func NewSDK(cfg *Config) *UcodeAPI {
-	return &UcodeAPI{
+func NewSDK(cfg *Config) UcodeApis {
+	return &object{
 		config: cfg,
 	}
 }
 
 // UcodeAPI struct implements UcodeAPIInterface
-type UcodeAPI struct {
+type object struct {
 	config *Config
 }
 
-func (u *UcodeAPI) Items(collection string) ItemsI {
+func (u *object) Items(collection string) ItemsI {
 	return &APIItem{
 		collection: collection,
 		config:     u.config,
 	}
 }
 
-func (u *UcodeAPI) Config() *Config {
+func (u *object) Config() *Config {
 	return u.config
 }
 
-func (u *UcodeAPI) Auth() AuthI {
+func (u *object) Auth() AuthI {
 	return &APIAuth{
 		config: u.config,
 	}
 }
 
-func (u *UcodeAPI) Files() FilesI {
+func (u *object) Files() FilesI {
 	return &APIFiles{
 		config: u.config,
 	}
 }
 
-func (u *UcodeAPI) Function() FunctionI {
+func (u *object) Function() FunctionI {
 	return &APIFunction{}
 }
 
@@ -61,19 +113,69 @@ func (u *UcodeAPI) Function() FunctionI {
 
 // Items interface defines methods related to item operations
 type ItemsI interface {
+	/*
+		CreateObject is a function that creates new object.
+
+		User DisableFaas(false) method to enable faas: default true
+
+		Works for [Mongo, Postgres]
+	*/
 	Create(data map[string]any) *CreateItem
+	/*
+		UpdateObject is a function that updates specific object or objects
+
+		User DisableFaas(false) method to enable faas: default true
+
+		Works for [Mongo, Postgres]
+	*/
 	Update(data map[string]any) *UpdateItem
+	/*
+		Delete is a function that is used to delete one or multiple object
+		User DisableFaas(false) method to enable faas: default true
+		map[guid]="actual_guid"
+
+		Works for [Mongo, Postgres]
+	*/
 	Delete() *DeleteItem
+	/*
+		GetList is function that get list of objects from specific table using filter.
+
+		sdk.Items("table_name").
+			GetList().
+			Page(1). //default 1
+			Limit(10). //default 10
+			WithRelations(true). //default false
+			Filter(map[string]any{"field_name": "value"}).
+			Exec()
+		It has three options: Exec, ExecSlim, ExecAggregation(use with pipelines)
+		Exec option works slower because it gets all the information
+		about the table, fields and view. User ExecSlim for faster response.
+		Works for [Mongo, Postgres]
+	*/
 	GetList() *GetListItem
+	/*
+		GetSingleSlim is function that get one object with its fields.
+		It is light and fast to use.
+
+		guid="your_guid"
+		sdk.Items("table_name").
+			GetSingle(guid).
+			ExecSlim()
+		It has two options: Exec, ExecSlim
+
+		Works for [Mongo, Postgres]
+	*/
 	GetSingle(id string) *GetSingleItem
 }
 
-// CREATE ITEM EXEC
 func (a *APIItem) Create(data map[string]any) *CreateItem {
 	return &CreateItem{
 		collection: a.collection,
 		config:     a.config,
-		data:       ActionBody{Body: data},
+		data: ActionBody{
+			Body:        data,
+			DisableFaas: true,
+		},
 	}
 }
 
@@ -120,7 +222,7 @@ func (a *APIItem) Update(data map[string]any) *UpdateItem {
 	return &UpdateItem{
 		collection: a.collection,
 		config:     a.config,
-		data:       ActionBody{Body: data},
+		data:       ActionBody{Body: data, DisableFaas: true},
 	}
 }
 
@@ -198,8 +300,9 @@ func (a *UpdateItem) ExecMultiple() (ClientApiMultipleUpdateResponse, Response, 
 // DELETE ITEM EXEC
 func (a *APIItem) Delete() *DeleteItem {
 	return &DeleteItem{
-		collection: a.collection,
-		config:     a.config,
+		collection:  a.collection,
+		config:      a.config,
+		disableFaas: true,
 	}
 }
 
@@ -213,9 +316,13 @@ func (a *DeleteItem) Single(id string) *DeleteItem {
 	return a
 }
 
-func (a *DeleteMultipleItem) Multiple(ids []string) *DeleteMultipleItem {
-	a.ids = ids
-	return a
+func (a *DeleteItem) Multiple(ids []string) *DeleteMultipleItem {
+	return &DeleteMultipleItem{
+		collection:  a.collection,
+		config:      a.config,
+		disableFaas: a.disableFaas,
+		ids:         ids,
+	}
 }
 
 func (a *DeleteItem) Exec() (Response, error) {
@@ -399,9 +506,6 @@ func (a *GetListItem) Pipelines(query map[string]any) *GetListAggregation {
 	}
 }
 
-type GetListArggItem struct {
-}
-
 func (a *GetListItem) WithRelations(with bool) *GetListItem {
 	a.request.Data["with_relations"] = with
 	return a
@@ -498,7 +602,6 @@ func (a *GetListAggregation) ExecAggregation() (GetListAggregationClientApiRespo
 		response.Status = "error"
 		return GetListAggregationClientApiResponse{}, response, err
 	}
-	fmt.Println("asdfadfas", string(getListAggregationResponseInByte))
 
 	err = json.Unmarshal(getListAggregationResponseInByte, &getListAggregation)
 	if err != nil {
@@ -511,27 +614,31 @@ func (a *GetListAggregation) ExecAggregation() (GetListAggregationClientApiRespo
 }
 
 type AuthI interface {
-	Login()
+	/*
+		Register is a function that registers a new user with the provided data.
+
+		Works for [Mongo, Postgres]
+
+		sdk.Auth().
+			Register(data).
+			Exec()
+
+		Use this method to create new users with basic or custom fields for authentication.
+	*/
 	Register(data AuthRequest) *Register
-	SendCode(data AuthRequest)
+	/*
+		ResetPassword is a function that resets a user's password with the provided data.
+
+		Works for [Mongo, Postgres]
+
+		sdk.Auth().
+			ResetPassword(data).
+			Exec()
+
+		This method initiates a password reset process, often requiring additional validation
+		such as email or phone verification before allowing the reset.
+	*/
 	ResetPassword(data AuthRequest) *ResetPassword
-}
-
-type Register struct {
-	config *Config
-	data   AuthRequest
-}
-
-type ResetPassword struct {
-	config *Config
-	data   AuthRequest
-}
-
-type APIAuth struct {
-	config *Config
-}
-
-func (a *APIAuth) Login() {
 }
 
 func (a *APIAuth) Register(data AuthRequest) *Register {
@@ -597,28 +704,31 @@ func (a *ResetPassword) Exec() (Response, error) {
 	return response, nil
 }
 
-func (a *APIAuth) SendCode(data AuthRequest) {
-}
-
-// Files interface defines methods for file operations
 type FilesI interface {
+	/*
+		Upload is a function that uploads a file to the server.
+
+		Works for [Mongo, Postgres]
+
+		sdk.Files().
+			Upload("file_path").
+			Exec()
+
+		Use this method to store a file and obtain its metadata for retrieval or management.
+	*/
 	Upload(filePath string) *UploadFile
+	/*
+		Delete is a function that deletes a file from the server.
+
+		Works for [Mongo, Postgres]
+
+		sdk.Files().
+			Delete("file_id").
+			Exec()
+
+		This method removes a file based on its unique identifier, allowing for clean file management.
+	*/
 	Delete(fileID string) *DeleteFile
-}
-
-// APIFiles struct implements FilesInterface
-type APIFiles struct {
-	config *Config
-}
-
-type UploadFile struct {
-	config *Config
-	path   string
-}
-
-type DeleteFile struct {
-	config *Config
-	id     string
 }
 
 func (f *APIFiles) Upload(filePath string) *UploadFile {
@@ -728,7 +838,6 @@ type FunctionI interface {
 }
 
 // APIFunction struct implements FunctionInterface
-type APIFunction struct{}
 
 func (f *APIFunction) InvokeByPath(path string) {
 }
@@ -761,7 +870,7 @@ func DoRequest(url string, method string, body any, headers map[string]string) (
 	return respByte, err
 }
 
-func (a *UcodeAPI) DoRequest(url string, method string, body any, headers map[string]string) ([]byte, error) {
+func (a *object) DoRequest(url string, method string, body any, headers map[string]string) ([]byte, error) {
 	data, err := json.Marshal(&body)
 	if err != nil {
 		return nil, err

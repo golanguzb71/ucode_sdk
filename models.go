@@ -173,6 +173,38 @@ type GetListAggregation struct {
 	request    Request
 }
 
+type Register struct {
+	config *Config
+	data   AuthRequest
+}
+
+type ResetPassword struct {
+	config *Config
+	data   AuthRequest
+}
+
+type APIAuth struct {
+	config *Config
+}
+
+type APIFiles struct {
+	config *Config
+}
+
+type UploadFile struct {
+	config *Config
+	path   string
+}
+
+type DeleteFile struct {
+	config *Config
+	id     string
+}
+
+type APIFunction struct {
+	config *Config
+}
+
 type User struct {
 	Id           string `json:"id"`
 	Login        string `json:"login"`

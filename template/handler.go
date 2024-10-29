@@ -96,6 +96,23 @@ func Handle() http.HandlerFunc {
 			return
 		}
 
+		getListResp, _, err := gg.Items("order_abdurahmon").
+			GetList().
+			Page(1).
+			Limit(20).
+			Sort(map[string]interface{}{"title": 1}).
+			Exec()
+		if err != nil {
+			errorResponse.ClientErrorMessage = "Error on getting request body"
+			errorResponse.ErrorMessage = err.Error()
+			errorResponse.StatusCode = http.StatusInternalServerError
+			handleResponse(w, returnError(errorResponse), http.StatusBadRequest)
+			return
+		}
+
+		marssss, _ = json.Marshal(getListResp)
+		fmt.Println("GETLIST RESP: ", string(marssss))
+
 		// createResp, response, err := gg.Items("order_abdurahmon").Create(body).Exec()
 		// if err != nil {
 		// 	errorResponse.ClientErrorMessage = "Error on getting request body"
