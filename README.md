@@ -19,7 +19,7 @@ UCode SDK is a Go package that provides a simple and efficient way to interact w
 To install the UCode SDK, use the following command:
 
 ```bash
-go get github.com/golanguzb70/ucode-sdk
+go get github.com/ucode-io/ucode_sdk
 ```
 
 ## Configuration
@@ -27,12 +27,11 @@ go get github.com/golanguzb70/ucode-sdk
 Before using the SDK, you need to configure it with your UCode API credentials and settings.
 
 ```go
-import "github.com/golanguzb70/ucode-sdk"
+import "github.com/ucode-io/ucode_sdk"
 
 config := &ucodesdk.Config{
     BaseURL:        "https://api.admin.u-code.io",
     FunctionName:   "your-function-name",
-    RequestTimeout: 30 * time.Second,
     AppId: "your_app_id"
 }
 
@@ -54,11 +53,7 @@ createRequest :=  map[string]any{
         "price": 100,
 }
 
-createdObject, response, err := ucodeApi.CreateObject(&ucodesdk.Argument{
-    TableSlug:   "your_table_slug",
-    Request:     createRequest,
-    DisableFaas: true,
-})
+createdObject, response, err := ucodeApi.Items("your_table_slug").Create(createRequest).Exec()
 if err != nil {
     log.Fatalf("Error creating object: %v", err)
 }
@@ -68,20 +63,17 @@ fmt.Printf("Created object: %+v\n", createdObject)
 
 ### Retrieving Objects
 
-#### Get List of Objects
+#### Get List Slim
 
 ```go
-listRequest := ucodesdk.Request{
-    Data: map[string]interface{}{}, // Add any filters here
-}
 
-objectList, response, err := ucodeApi.GetList(&ucodesdk.ArgumentWithPegination{
-    TableSlug:   "your_table_slug",
-    Request:     listRequest,
-    DisableFaas: true,
-    Limit:       10,
-    Page:        1,
-})
+objectList, response, err := ucodeApi.Items("your_table_slug").
+    GetList().
+    Page(1).
+    Limit(10).
+    Filter(map[string]any{}). // add any filters here
+    WithRelation(true).
+    Exec()
 if err != nil {
     log.Fatalf("Error retrieving object list: %v", err)
 }
@@ -89,50 +81,15 @@ if err != nil {
 fmt.Printf("Retrieved objects: %+v\n", objectList)
 ```
 
-#### Get List Slim
-
-To retrieve a list of objects with selected relations:
-
-```go
-listSlimRequest := ucodesdk.Request{
-    Data: map[string]interface{}{
-        "with_relations": true,
-        "selected_relations": []string{"related_table"},
-    },
-}
-
-objectListSlim, response, err := ucodeApi.GetListSlim(&ucodesdk.ArgumentWithPegination{
-    TableSlug:   "your_table_slug",
-    Request:     listSlimRequest,
-    DisableFaas: true,
-    Limit:       10,
-    Page:        1,
-})
-if err != nil {
-    log.Fatalf("Error retrieving slim object list: %v", err)
-}
-
-fmt.Printf("Retrieved slim objects: %+v\n", objectListSlim)
-```
-
 #### Get Single Slim
 
 To retrieve a single object with selected relations:
 
 ```go
-singleSlimRequest := ucodesdk.Request{
-    Data: map[string]interface{}{
-        "guid": "object_guid",
-        "with_relations": true,
-        "selected_relations": []string{"related_table"},
-    },
-}
 
-singleSlimObject, response, err := ucodeApi.GetSingleSlim(&ucodesdk.Argument{
-    TableSlug:   "your_table_slug",
-    Request:     singleSlimRequest,
-    DisableFaas: true,
-})
+singleSlimObject, response, err := ucodeApi.Items("your_table_slug").
+    GetSingle("object_guid").
+    ExecSlim() // Use Exec() for simple
 if err != nil {
     log.Fatalf("Error retrieving single slim object: %v", err)
 }
@@ -145,36 +102,33 @@ fmt.Printf("Retrieved slim object: %+v\n", singleSlimObject)
 To perform an aggregation query (MongoDB only):
 
 ```go
-aggregationPipeline := []map[string]interface{}{
+aggregationPipeline := []map[string]any{
     {
-        "$match": map[string]interface{}{
-            "field": map[string]interface{}{
+        "$match": map[string]any{
+            "field": map[string]any{
                 "$exists": true,
                 "$eq":     "value",
             },
         },
     },
     {
-        "$group": map[string]interface{}{
+        "$group": map[string]any{
             "_id": "$group_field",
-            "count": map[string]interface{}{
+            "count": map[string]any{
                 "$sum": 1,
             },
         },
     },
 }
 
-aggregationRequest := ucodesdk.Request{
-    Data: map[string]interface{}{
-        "pipelines": aggregationPipeline,
-    },
+aggregationRequest :=  map[string]any{
+    "pipelines": aggregationPipeline,
 }
 
-aggregationResult, response, err := ucodeApi.GetListAggregation(&ucodesdk.Argument{
-    TableSlug:   "your_table_slug",
-    Request:     aggregationRequest,
-    DisableFaas: true,
-})
+aggregationResult, response, err := ucodeApi.Items("your_table_slug").
+    GetList().
+    Pipelines(aggregationRequest).
+    ExecAggregation()
 if err != nil {
     log.Fatalf("Error performing aggregation: %v", err)
 }
@@ -182,43 +136,21 @@ if err != nil {
 fmt.Printf("Aggregation result: %+v\n", aggregationResult)
 ```
 
-#### Get Single Object
-
-```go
-singleRequest := ucodesdk.Request{
-    Data: map[string]interface{}{"guid": "object_guid"},
-}
-
-singleObject, response, err := ucodeApi.GetSingle(&ucodesdk.Argument{
-    TableSlug:   "your_table_slug",
-    Request:     singleRequest,
-    DisableFaas: true,
-})
-if err != nil {
-    log.Fatalf("Error retrieving single object: %v", err)
-}
-
-fmt.Printf("Retrieved object: %+v\n", singleObject)
-```
-
 ### Updating Objects
 
 #### Update Single Object
 
 ```go
-updateRequest := ucodesdk.Request{
-    Data: map[string]interface{}{
-        "guid":  "object_guid",
-        "name":  "Updated Name",
-        "price": 150,
-    },
+updateRequest := map[string]any{
+    "guid":  "object_guid",
+    "name":  "Updated Name",
+    "price": 150,
 }
 
-updatedObject, response, err := ucodeApi.UpdateObject(&ucodesdk.Argument{
-    TableSlug:   "your_table_slug",
-    Request:     updateRequest,
-    DisableFaas: true,
-})
+updatedObject, response, err := ucodeApi.Items("your_table_slug").
+    Update(updatedObject).
+    DisableFaas(false). //default true
+    ExecSingle()
 if err != nil {
     log.Fatalf("Error updating object: %v", err)
 }
@@ -229,20 +161,16 @@ fmt.Printf("Updated object: %+v\n", updatedObject)
 #### Update Multiple Objects
 
 ```go
-multiUpdateRequest := ucodesdk.Request{
-    Data: map[string]interface{}{
-        "objects": []map[string]interface{}{
-            {"guid": "object1_guid", "name": "Updated Name 1"},
-            {"guid": "object2_guid", "name": "Updated Name 2"},
-        },
+multiUpdateRequest := map[string]any{
+    "objects": []map[string]any{
+        {"guid": "object1_guid", "name": "Updated Name 1"},
+        {"guid": "object2_guid", "name": "Updated Name 2"},
     },
 }
 
-updatedObjects, response, err := ucodeApi.MultipleUpdate(&ucodesdk.Argument{
-    TableSlug:   "your_table_slug",
-    Request:     multiUpdateRequest,
-    DisableFaas: true,
-})
+updatedObjects, response, err := ucodeApi.Items("your_table_slug").
+    Update(updatedObject).
+    ExecMultiple()
 if err != nil {
     log.Fatalf("Error updating multiple objects: %v", err)
 }
@@ -255,15 +183,12 @@ fmt.Printf("Updated objects: %+v\n", updatedObjects)
 #### Delete Single Object
 
 ```go
-deleteRequest := ucodesdk.Request{
-    Data: map[string]interface{}{"guid": "object_guid"},
-}
 
-response, err := ucodeApi.Delete(&ucodesdk.Argument{
-    TableSlug:   "your_table_slug",
-    Request:     deleteRequest,
-    DisableFaas: true,
-})
+response, err := ucodeApi.Items("your_table_slug").
+    Delete().
+    DisableFaas(false).
+    Single("object_guid").
+    Exec()
 if err != nil {
     log.Fatalf("Error deleting object: %v", err)
 }
@@ -274,68 +199,16 @@ fmt.Printf("Delete response: %+v\n", response)
 #### Delete Multiple Objects
 
 ```go
-multiDeleteRequest := ucodesdk.Request{
-    Data: map[string]interface{}{"ids": []string{"object1_guid", "object2_guid"}},
-}
 
-response, err := ucodeApi.MultipleDelete(&ucodesdk.Argument{
-    TableSlug:   "your_table_slug",
-    Request:     multiDeleteRequest,
-    DisableFaas: true,
-})
+response, err := ucodeApi.Items("your_table_slug").
+    Delete().
+    Multiple([]string{"object1_guid", "object2_guid"}).
+    Exec()
 if err != nil {
     log.Fatalf("Error deleting multiple objects: %v", err)
 }
 
 fmt.Printf("Multiple delete response: %+v\n", response)
-```
-
-### Managing Many-to-Many Relationships
-
-#### Append Many-to-Many Relationship
-
-```go
-appendRequest := ucodesdk.Request{
-    Data: map[string]interface{}{
-        "table_from": "main_table",
-        "table_to":   "related_table",
-        "id_from":    "main_object_guid",
-        "id_to":      []string{"related_object1_guid", "related_object2_guid"},
-    },
-}
-
-response, err := ucodeApi.AppendManyToMany(&ucodesdk.Argument{
-    TableSlug: "main_table",
-    Request:   appendRequest,
-})
-if err != nil {
-    log.Fatalf("Error appending many-to-many relationship: %v", err)
-}
-
-fmt.Printf("Append many-to-many response: %+v\n", response)
-```
-
-#### Delete Many-to-Many Relationship
-
-```go
-deleteRelationRequest := ucodesdk.Request{
-    Data: map[string]interface{}{
-        "table_from": "main_table",
-        "table_to":   "related_table",
-        "id_from":    "main_object_guid",
-        "id_to":      []string{}, // Empty array to remove all relationships
-    },
-}
-
-response, err := ucodeApi.DeleteManyToMany(&ucodesdk.Argument{
-    TableSlug: "main_table",
-    Request:   deleteRelationRequest,
-})
-if err != nil {
-    log.Fatalf("Error deleting many-to-many relationship: %v", err)
-}
-
-fmt.Printf("Delete many-to-many response: %+v\n", response)
 ```
 
 ## Error Handling
@@ -356,4 +229,3 @@ For more detailed examples and use cases, please refer to the `function_test.go`
 ---
 
 For any issues, feature requests, or questions, please open an issue in the GitHub repository or contact the maintainers.
-
