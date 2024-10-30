@@ -188,6 +188,11 @@ type Login struct {
 	data   AuthRequest
 }
 
+type SendCode struct {
+	config *Config
+	data   AuthRequest
+}
+
 type APIAuth struct {
 	config *Config
 }
@@ -267,4 +272,59 @@ type FunctionResponse struct {
 	Description   string `json:"description"`
 	Data          any    `json:"data"`
 	CustomMessage any    `json:"custom_message"`
+}
+
+type LoginWithOptionResponse struct {
+	Status      string `json:"status"`
+	Description string `json:"description"`
+	Data        struct {
+		UserFound bool           `json:"user_found"`
+		UserId    string         `json:"user_id"`
+		Token     *Token         `json:"token"`
+		Sessions  []*Session     `json:"sessions"`
+		UserData  map[string]any `json:"user_data"`
+	} `json:"data"`
+}
+
+type Session struct {
+	Id           string `json:"id"`
+	ProjectId    string `json:"project_id"`
+	ClientTypeId string `json:"client_type_id"`
+	UserId       string `json:"user_id"`
+	RoleId       string `json:"role_id"`
+	CreatedAt    string `json:"created_at"`
+	UpdatedAt    string `json:"updated_at"`
+	UserIdAuth   string `json:"user_id_auth"`
+}
+
+type LoginResponse struct {
+	Status      string `json:"status"`
+	Description string `json:"description"`
+	Data        struct {
+		UserFound        bool             `json:"user_found"`
+		ClientType       map[string]any   `json:"client_type"`
+		UserId           string           `json:"user_id"`
+		Role             map[string]any   `json:"role"`
+		Token            *Token           `json:"token"`
+		Permissions      []map[string]any `json:"permissions"`
+		Sessions         []*Session       `json:"sessions"`
+		LoginTableSlug   string           `json:"login_table_slug"`
+		AppPermissions   []map[string]any `json:"app_permissions"`
+		ResourceId       string           `json:"resource_id"`
+		EnvironmentId    string           `json:"environment_id"`
+		User             *User            `json:"user"`
+		GlobalPermission map[string]any   `json:"global_permission"`
+		UserData         map[string]any   `json:"user_data"`
+		UserIdAuth       string           `json:"user_id_auth"`
+	} `json:"data"`
+}
+
+type SendCodeResponse struct {
+	Status      string `json:"status"`
+	Description string `json:"description"`
+	Data        struct {
+		SmsId       string `json:"sms_id"`
+		GoogleAcces bool   `json:"google_acces"`
+		UserFound   bool   `json:"user_found"`
+	} `json:"data"`
 }

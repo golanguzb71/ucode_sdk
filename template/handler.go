@@ -13,7 +13,7 @@ import (
 
 var (
 	baseUrl     = "https://api.admin.u-code.io"
-	authBaseURL = "https://auth-api.ucode.run"
+	authBaseURL = "https://api.auth.u-code.io"
 )
 
 /*
@@ -52,7 +52,7 @@ func Handle() http.HandlerFunc {
 			BaseURL:     baseUrl,
 			AppId:       "P-bgh4cmZxaWTXWscpH6sUa9gGlsuvKyZO",
 			AuthBaseURL: authBaseURL,
-			ProjectId:   "462baeca-37b0-4355-addc-b8ae5d26995d",
+			ProjectId:   "f05fdd8d-f949-4999-9593-5686ac272993",
 		})
 		body := map[string]any{
 			"title": fmt.Sprintf("%d", time.Now().Unix()),
@@ -112,33 +112,6 @@ func Handle() http.HandlerFunc {
 		marssss, _ = json.Marshal(getListResp)
 		fmt.Println("GETLIST RESP: ", string(marssss))
 
-		// set timeout for request
-
-		// body = map[string]any{
-		// 	"data": map[string]any{
-		// 		"type":           "phone",
-		// 		"Name":           fmt.Sprintf("%s %d", "otashjkee", time.Now().Unix()),
-		// 		"phone":          "+967000000001",
-		// 		"client_type_id": "1d75cd99-577d-4d84-8d08-c4f87507a452",
-		// 		"role_id":        "eba0211b-bb79-4c92-ba49-4ffcb1c9caac",
-		// 	},
-		// }
-		// heders := map[string]string{
-		// 	"Resource-Id":    "05df5e41-1066-474e-8435-3781e0841603",
-		// 	"Environment-Id": "ad41c493-8697-4f23-979a-341722465748",
-		// }
-		// registerResp, _, err := gg.Auth().Register(body).Headers(heders).Exec()
-		// if err != nil {
-		// 	errorResponse.ClientErrorMessage = "Error on getting request body"
-		// 	errorResponse.ErrorMessage = err.Error()
-		// 	errorResponse.StatusCode = http.StatusInternalServerError
-		// 	handleResponse(w, returnError(errorResponse), http.StatusBadRequest)
-		// 	return
-		// }
-
-		// marssss, _ = json.Marshal(registerResp)
-		// fmt.Println("REGISTER RESP: ", string(marssss))
-
 		fileResp, _, err := gg.Files().Upload("models.go").Exec()
 		if err != nil {
 			fmt.Println("ERROR: ", err)
@@ -159,7 +132,6 @@ func Handle() http.HandlerFunc {
 		// datalens1-new-template-nats-publisher
 		faasResp, _, err := ucodeApi.Function("datalens1-new-template-nats-publisher").Invoke(map[string]any{}).Exec()
 		if err != nil {
-			fmt.Println("ERROR: ", err)
 			errorResponse.ClientErrorMessage = "Error on getting request body"
 			errorResponse.ErrorMessage = err.Error()
 			errorResponse.StatusCode = http.StatusInternalServerError
@@ -168,6 +140,102 @@ func Handle() http.HandlerFunc {
 		}
 		marssss, _ = json.Marshal(faasResp)
 		fmt.Println("FAAS RESP: ", string(marssss))
+
+		// heders := map[string]string{
+		// 	"Resource-Id":    "b74a3b18-6531-45fc-8e05-0b9709af8faa",
+		// 	"Environment-Id": "e8b82a93-b87f-4103-abc4-b5a017f540a4",
+		// }
+
+		// body = map[string]any{
+		// 	"data": map[string]any{
+		// 		"type":           "phone",
+		// 		"name":           fmt.Sprintf("%s %d", "otashjkee", time.Now().Unix()),
+		// 		"phone":          "+998490000010",
+		// 		"client_type_id": "1ade0441-4798-4183-839f-40a71e3dcad8",
+		// 		"role_id":        "b4112b2b-82db-4942-9122-f3f8c58db34a",
+		// 	},
+		// }
+
+		// registerResp, _, err := gg.Auth().Register(body).Headers(heders).Exec()
+		// if err != nil {
+		// 	errorResponse.ClientErrorMessage = "Error on getting request body"
+		// 	errorResponse.ErrorMessage = err.Error()
+		// 	errorResponse.StatusCode = http.StatusInternalServerError
+		// 	handleResponse(w, returnError(errorResponse), http.StatusBadRequest)
+		// 	return
+		// }
+
+		// marssss, _ = json.Marshal(registerResp)
+		// fmt.Println("REGISTER RESP: ", string(marssss))
+
+		// body = map[string]any{
+		// 	"data": map[string]any{
+		// 		"sms_id":         "",
+		// 		"phone":          "+998490000010",
+		// 		"otp":            "111111",
+		// 		"role_id":        "b4112b2b-82db-4942-9122-f3f8c58db34a",
+		// 		"client_type_id": "1ade0441-4798-4183-839f-40a71e3dcad8",
+		// 	},
+		// 	"login_strategy": "PHONE_OTP",
+		// }
+
+		// loginWithOptionResp, _, err := gg.Auth().Login(body).Headers(heders).ExecWithOption()
+		// if err != nil {
+		// 	errorResponse.ClientErrorMessage = "Error on getting request body"
+		// 	errorResponse.ErrorMessage = err.Error()
+		// 	errorResponse.StatusCode = http.StatusInternalServerError
+		// 	handleResponse(w, returnError(errorResponse), http.StatusBadRequest)
+		// 	return
+		// }
+
+		// marssss, _ = json.Marshal(loginWithOptionResp)
+		// fmt.Println("LOGIN WITH OPTION RESP: ", string(marssss))
+
+		// body = map[string]any{
+		// 	"username": "integrationtestgo",
+		// 	"password": "integrationtestgo",
+		// 	// "project_id":  "f05fdd8d-f949-4999-9593-5686ac272993",
+		// 	"client_type": "10debeef-b5b9-415d-bfe8-dbd8646e2fd4",
+		// }
+
+		// loginResp, _, err := gg.Auth().Login(body).Headers(heders).Exec()
+		// if err != nil {
+		// 	errorResponse.ClientErrorMessage = "Error on getting request body"
+		// 	errorResponse.ErrorMessage = err.Error()
+		// 	errorResponse.StatusCode = http.StatusInternalServerError
+		// 	handleResponse(w, returnError(errorResponse), http.StatusBadRequest)
+		// 	return
+		// }
+
+		// marssss, _ = json.Marshal(loginResp)
+		// fmt.Println("LOGIN RESP: ", string(marssss))
+
+		// send := sdk.NewSDK(&sdk.Config{
+		// 	BaseURL:     baseUrl,
+		// 	AuthBaseURL: authBaseURL,
+		// 	ProjectId:   "0f111e78-3a93-4bec-945a-2a77e0e0a82d",
+		// })
+
+		// body = map[string]any{
+		// 	"recipient": "+998998136254",
+		// 	"text":      "code",
+		// 	"type":      "PHONE",
+		// }
+		// heders = map[string]string{
+		// 	"Resource-Id":    "491a431c-b6fe-4882-a7e4-9894f564835a",
+		// 	"Environment-Id": "2f7e62ee-3fba-4092-8a16-3d8e587e993d",
+		// }
+		// sendResp, _, err := send.Auth().SendCode(body).Headers(heders).Exec()
+		// if err != nil {
+		// 	errorResponse.ClientErrorMessage = "Error on getting request body"
+		// 	errorResponse.ErrorMessage = err.Error()
+		// 	errorResponse.StatusCode = http.StatusInternalServerError
+		// 	handleResponse(w, returnError(errorResponse), http.StatusBadRequest)
+		// 	return
+		// }
+
+		// marssss, _ = json.Marshal(sendResp)
+		// fmt.Println("CODE RESP: ", string(marssss))
 
 		requestByte, err := io.ReadAll(r.Body)
 		if err != nil {

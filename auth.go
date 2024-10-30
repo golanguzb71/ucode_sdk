@@ -39,6 +39,7 @@ type AuthI interface {
 	*/
 	ResetPassword(data map[string]any) *ResetPassword
 	Login(body map[string]any) *Login
+	SendCode(data map[string]any) *SendCode
 }
 
 func (a *APIAuth) Register(data map[string]any) *Register {
@@ -126,26 +127,90 @@ func (a *Login) Headers(headers map[string]string) *Login {
 	return a
 }
 
-func (a *Login) Exec() (RegisterResponse, Response, error) {
+func (a *Login) Exec() (LoginResponse, Response, error) {
 	var (
-		response       = Response{Status: "done"}
-		registerObject RegisterResponse
-		url            = fmt.Sprintf("%s/v2/login/with-option?project-id=%s", a.config.AuthBaseURL, a.config.ProjectId)
+		response    = Response{Status: "done"}
+		loginObject LoginResponse
+		url         = fmt.Sprintf("%s/v2/login", a.config.AuthBaseURL)
 	)
 
-	registerResponseInByte, err := DoRequest(url, http.MethodPost, a.data.Body, a.data.Headers)
-	if err != nil {
-		response.Data = map[string]any{"description": string(registerResponseInByte), "message": "Can't send request", "error": err.Error()}
-		response.Status = "error"
-		return RegisterResponse{}, response, err
+	if a.data.Body["project_id"] == nil {
+		a.data.Body["project_id"] = a.config.ProjectId
 	}
 
-	err = json.Unmarshal(registerResponseInByte, &registerObject)
+	loginResponseInByte, err := DoRequest(url, http.MethodPost, a.data.Body, a.data.Headers)
 	if err != nil {
-		response.Data = map[string]any{"description": string(registerResponseInByte), "message": "Error while unmarshalling register object", "error": err.Error()}
+		response.Data = map[string]any{"description": string(loginResponseInByte), "message": "Can't send request", "error": err.Error()}
 		response.Status = "error"
-		return RegisterResponse{}, response, err
+		return LoginResponse{}, response, err
 	}
 
-	return registerObject, response, nil
+	err = json.Unmarshal(loginResponseInByte, &loginObject)
+	if err != nil {
+		response.Data = map[string]any{"description": string(loginResponseInByte), "message": "Error while unmarshalling login object", "error": err.Error()}
+		response.Status = "error"
+		return LoginResponse{}, response, err
+	}
+
+	return loginObject, response, nil
+}
+
+func (a *Login) ExecWithOption() (LoginWithOptionResponse, Response, error) {
+	var (
+		response    = Response{Status: "done"}
+		loginObject LoginWithOptionResponse
+		url         = fmt.Sprintf("%s/v2/login/with-option?project-id=%s", a.config.AuthBaseURL, a.config.ProjectId)
+	)
+
+	loginResponseInByte, err := DoRequest(url, http.MethodPost, a.data.Body, a.data.Headers)
+	if err != nil {
+		response.Data = map[string]any{"description": string(loginResponseInByte), "message": "Can't send request", "error": err.Error()}
+		response.Status = "error"
+		return LoginWithOptionResponse{}, response, err
+	}
+
+	err = json.Unmarshal(loginResponseInByte, &loginObject)
+	if err != nil {
+		response.Data = map[string]any{"description": string(loginResponseInByte), "message": "Error while unmarshalling login with option object", "error": err.Error()}
+		response.Status = "error"
+		return LoginWithOptionResponse{}, response, err
+	}
+
+	return loginObject, response, nil
+}
+
+func (a *APIAuth) SendCode(data map[string]any) *SendCode {
+	return &SendCode{
+		config: a.config,
+		data:   AuthRequest{Body: data},
+	}
+}
+
+func (a *SendCode) Headers(headers map[string]string) *SendCode {
+	a.data.Headers = headers
+	return a
+}
+
+func (a *SendCode) Exec() (SendCodeResponse, Response, error) {
+	var (
+		response   = Response{Status: "done"}
+		codeObject SendCodeResponse
+		url        = fmt.Sprintf("%s/v2/send-code?project-id=%s", a.config.AuthBaseURL, a.config.ProjectId)
+	)
+
+	codeResponseInByte, err := DoRequest(url, http.MethodPost, a.data.Body, a.data.Headers)
+	if err != nil {
+		response.Data = map[string]any{"description": string(codeResponseInByte), "message": "Can't send request", "error": err.Error()}
+		response.Status = "error"
+		return SendCodeResponse{}, response, err
+	}
+
+	err = json.Unmarshal(codeResponseInByte, &codeObject)
+	if err != nil {
+		response.Data = map[string]any{"description": string(codeResponseInByte), "message": "Error while unmarshalling send code object", "error": err.Error()}
+		response.Status = "error"
+		return SendCodeResponse{}, response, err
+	}
+
+	return codeObject, response, nil
 }
