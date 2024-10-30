@@ -164,22 +164,20 @@ func Handle() http.HandlerFunc {
 
 		// set timeout for request
 
-		registerBody := sdk.AuthRequest{
-			Body: map[string]any{
-				"data": map[string]any{
-					"type":           "phone",
-					"Name":           fmt.Sprintf("%s %d", "otashjkee", time.Now().Unix()),
-					"phone":          "+967000000001",
-					"client_type_id": "1d75cd99-577d-4d84-8d08-c4f87507a452",
-					"role_id":        "eba0211b-bb79-4c92-ba49-4ffcb1c9caac",
-				},
-			},
-			Headers: map[string]string{
-				"Resource-Id":    "05df5e41-1066-474e-8435-3781e0841603",
-				"Environment-Id": "ad41c493-8697-4f23-979a-341722465748",
+		body = map[string]any{
+			"data": map[string]any{
+				"type":           "phone",
+				"Name":           fmt.Sprintf("%s %d", "otashjkee", time.Now().Unix()),
+				"phone":          "+967000000001",
+				"client_type_id": "1d75cd99-577d-4d84-8d08-c4f87507a452",
+				"role_id":        "eba0211b-bb79-4c92-ba49-4ffcb1c9caac",
 			},
 		}
-		registerResp, _, err := gg.Auth().Register(registerBody).Exec()
+		heders := map[string]string{
+			"Resource-Id":    "05df5e41-1066-474e-8435-3781e0841603",
+			"Environment-Id": "ad41c493-8697-4f23-979a-341722465748",
+		}
+		registerResp, _, err := gg.Auth().Register(body).Headers(heders).Exec()
 		if err != nil {
 			errorResponse.ClientErrorMessage = "Error on getting request body"
 			errorResponse.ErrorMessage = err.Error()

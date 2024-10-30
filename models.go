@@ -183,6 +183,11 @@ type ResetPassword struct {
 	data   AuthRequest
 }
 
+type Login struct {
+	config *Config
+	data   AuthRequest
+}
+
 type APIAuth struct {
 	config *Config
 }
