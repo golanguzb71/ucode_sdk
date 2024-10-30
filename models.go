@@ -207,6 +207,9 @@ type DeleteFile struct {
 }
 
 type APIFunction struct {
+	config  *Config
+	request Request
+	path    string
 }
 
 type User struct {
@@ -257,4 +260,11 @@ type CreateFileResponse struct {
 		FileSize         int    `json:"file_size"`
 	} `json:"data"`
 	CustomMessage string `json:"custom_message"`
+}
+
+type FunctionResponse struct {
+	Status        string `json:"status"`
+	Description   string `json:"description"`
+	Data          any    `json:"data"`
+	CustomMessage any    `json:"custom_message"`
 }

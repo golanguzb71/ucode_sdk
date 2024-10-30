@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 
-	function "github.com/golanguzb70/ucode-sdk/template"
+	function "github.com/ucode-io/ucode_sdk/template"
 )
 
 func main() {
