@@ -29,7 +29,7 @@ Before using the SDK, you need to configure it with your UCode API credentials a
 import "github.com/ucode-io/ucode_sdk"
 
 config := &ucodesdk.Config{
-    BaseURL:        "https://api.admin.u-code.io",
+    BaseURL:        "https://api.client.u-code.io",
     FunctionName:   "your-function-name",
     AppId: "your_app_id"
 }
