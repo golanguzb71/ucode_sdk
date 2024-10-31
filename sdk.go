@@ -68,7 +68,7 @@ type UcodeApis interface {
 	DoRequest(url string, method string, body any, headers map[string]string) ([]byte, error)
 }
 
-func NewSDK(cfg *Config) UcodeApis {
+func New(cfg *Config) UcodeApis {
 	return &object{
 		config: cfg,
 	}
