@@ -10,4 +10,5 @@ type Config struct {
 	FunctionName   string
 	ProjectId      string
 	RequestTimeout time.Duration
+	BaseAuthUrl    string
 }

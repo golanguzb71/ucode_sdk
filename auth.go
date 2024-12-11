@@ -60,7 +60,7 @@ func (a *Register) Exec() (RegisterResponse, Response, error) {
 			Status: "done",
 		}
 		registerObject RegisterResponse
-		url            = fmt.Sprintf("%s/v2/register?project-id=%s", a.config.BaseURL, a.config.ProjectId)
+		url            = fmt.Sprintf("%s/v2/register?project-id=%s", a.config.BaseAuthUrl, a.config.ProjectId)
 	)
 
 	registerResponseInByte, err := DoRequest(url, http.MethodPost, a.data.Body, a.data.Headers)
@@ -95,7 +95,7 @@ func (a *ResetPassword) Headers(headers map[string]string) *ResetPassword {
 func (a *ResetPassword) Exec() (Response, error) {
 	var (
 		response = Response{Status: "done"}
-		url      = fmt.Sprintf("%s/v2/reset-password", a.config.BaseURL)
+		url      = fmt.Sprintf("%s/v2/reset-password", a.config.BaseAuthUrl)
 	)
 
 	var appId = a.config.AppId
@@ -131,7 +131,7 @@ func (a *Login) Exec() (LoginResponse, Response, error) {
 	var (
 		response    = Response{Status: "done"}
 		loginObject LoginResponse
-		url         = fmt.Sprintf("%s/v2/login", a.config.BaseURL)
+		url         = fmt.Sprintf("%s/v2/login", a.config.BaseAuthUrl)
 	)
 
 	if a.data.Body["project_id"] == nil {
@@ -159,7 +159,7 @@ func (a *Login) ExecWithOption() (LoginWithOptionResponse, Response, error) {
 	var (
 		response    = Response{Status: "done"}
 		loginObject LoginWithOptionResponse
-		url         = fmt.Sprintf("%s/v2/login/with-option?project-id=%s", a.config.BaseURL, a.config.ProjectId)
+		url         = fmt.Sprintf("%s/v2/login/with-option?project-id=%s", a.config.BaseAuthUrl, a.config.ProjectId)
 	)
 
 	loginResponseInByte, err := DoRequest(url, http.MethodPost, a.data.Body, a.data.Headers)
@@ -195,7 +195,7 @@ func (a *SendCode) Exec() (SendCodeResponse, Response, error) {
 	var (
 		response   = Response{Status: "done"}
 		codeObject SendCodeResponse
-		url        = fmt.Sprintf("%s/v2/send-code", a.config.BaseURL)
+		url        = fmt.Sprintf("%s/v2/send-code", a.config.BaseAuthUrl)
 	)
 
 	codeResponseInByte, err := DoRequest(url, http.MethodPost, a.data.Body, a.data.Headers)

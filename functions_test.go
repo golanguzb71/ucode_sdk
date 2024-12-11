@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	baseUrl = "https://api.client.u-code.io"
+	baseUrl = "https://api.admin.u-code.io"
 )
 
 func TestEndToEnd(t *testing.T) {

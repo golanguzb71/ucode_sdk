@@ -94,6 +94,8 @@ func Handle() http.HandlerFunc {
 			return
 		}
 
+		gg.Items("order").GetList().Page(1).Limit(10).Filter(nil).WithRelations(true).Exec()
+
 		getListResp, _, err := gg.Items("order_abdurahmon").
 			GetList().
 			Page(1).
