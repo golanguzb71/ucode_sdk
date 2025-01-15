@@ -406,6 +406,14 @@ func (a *GetListItem) Exec() (GetListClientApiResponse, Response, error) {
 		return GetListClientApiResponse{}, response, err
 	}
 
+	if a.page == 0 {
+		a.page = 1
+	}
+
+	if a.limit == 0 {
+		a.limit = 10
+	}
+
 	url = fmt.Sprintf("%s&data=%s&offset=%d&limit=%d", url, string(reqObject), (a.page-1)*a.limit, a.limit)
 
 	var appId = a.config.AppId
