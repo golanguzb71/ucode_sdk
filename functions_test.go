@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	baseUrl = "https://api.admin.u-code.io"
+	baseUrl = "https://api.client.u-code.io"
 )
 
 func TestEndToEnd(t *testing.T) {
@@ -789,7 +789,7 @@ func TestEndToEnd(t *testing.T) {
 	t.Run("GetSingleSlim in mongo", func(t *testing.T) {
 		// --------------------------GetSingleSlim------------------------------
 		var id = cast.ToString(roomsMongo[0]["guid"])
-		courseResponse, response, err := ucodeApi.Items("room").GetSingle(id).ExecSlim()
+		courseResponse, response, err := ucodeApi.Items("room").GetSingle(id).Exec()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "Error on get-single course"
@@ -807,7 +807,7 @@ func TestEndToEnd(t *testing.T) {
 		assert.Equal(t, "room", courseResponse.Data.Data.Response["name"])
 
 		// Test with invalid parameters
-		_, _, err = ucodeApi.Items("houses").GetSingle("invalid_guid").ExecSlim()
+		_, _, err = ucodeApi.Items("houses").GetSingle("invalid_guid").Exec()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return
@@ -818,7 +818,7 @@ func TestEndToEnd(t *testing.T) {
 		// --------------------------GetSingleSlim------------------------------
 		var id = cast.ToString(roomsPostgres[0]["guid"])
 
-		courseResponse, response, err := ucodeApiPg.Items("room").GetSingle(id).ExecSlim()
+		courseResponse, response, err := ucodeApiPg.Items("room").GetSingle(id).Exec()
 		if err != nil {
 			errorResponse.Description = response.Data["description"]
 			errorResponse.ClientErrorMessage = "Error on get-single course"
@@ -836,7 +836,7 @@ func TestEndToEnd(t *testing.T) {
 		assert.Equal(t, "room", courseResponse.Data.Data.Response["name"])
 
 		// Test with invalid parameters
-		_, _, err = ucodeApiPg.Items("houses").GetSingle("invalid_guid").ExecSlim()
+		_, _, err = ucodeApiPg.Items("houses").GetSingle("invalid_guid").Exec()
 		if err == nil {
 			t.Error("Expected error for invalid parameters, got nil")
 			return

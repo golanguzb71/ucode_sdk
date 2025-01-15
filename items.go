@@ -172,7 +172,7 @@ func (a *UpdateItem) ExecMultiple() (ClientApiMultipleUpdateResponse, Response, 
 			Status: "done",
 		}
 		multipleUpdateObject ClientApiMultipleUpdateResponse
-		url                  = fmt.Sprintf("%s/v1/object/multiple-update/%s?from-ofs=%t", a.config.BaseURL, a.collection, a.data.DisableFaas)
+		url                  = fmt.Sprintf("%s/v2/items/%s?from-ofs=%t", a.config.BaseURL, a.collection, a.data.DisableFaas)
 	)
 
 	var appId = a.config.AppId
@@ -182,7 +182,7 @@ func (a *UpdateItem) ExecMultiple() (ClientApiMultipleUpdateResponse, Response, 
 		"X-API-KEY":     appId,
 	}
 
-	multipleUpdateObjectsResponseInByte, err := DoRequest(url, http.MethodPut, a.data, header)
+	multipleUpdateObjectsResponseInByte, err := DoRequest(url, http.MethodPatch, a.data, header)
 	if err != nil {
 		response.Data = map[string]any{"description": string(multipleUpdateObjectsResponseInByte), "message": "Error while multiple updating objects", "error": err.Error()}
 		response.Status = "error"
@@ -257,7 +257,7 @@ func (a *DeleteMultipleItem) Exec() (Response, error) {
 		response = Response{
 			Status: "done",
 		}
-		url = fmt.Sprintf("%s/v1/object/%s/?from-ofs=%t", a.config.BaseURL, a.collection, a.disableFaas)
+		url = fmt.Sprintf("%s/v2/items/%s?from-ofs=%t", a.config.BaseURL, a.collection, a.disableFaas)
 	)
 
 	var appId = a.config.AppId
@@ -329,37 +329,6 @@ func (a *GetSingleItem) Exec() (ClientApiResponse, Response, error) {
 
 // GET SINGLE SLIM ITEM EXEC
 
-func (a *GetSingleItem) ExecSlim() (ClientApiResponse, Response, error) {
-	var (
-		response  = Response{Status: "done"}
-		getObject ClientApiResponse
-		url       = fmt.Sprintf("%s/v1/object-slim/%s/%v?from-ofs=%t", a.config.BaseURL, a.collection, a.guid, true)
-	)
-
-	var appId = a.config.AppId
-
-	header := map[string]string{
-		"authorization": "API-KEY",
-		"X-API-KEY":     appId,
-	}
-
-	resByte, err := DoRequest(url, http.MethodGet, nil, header)
-	if err != nil {
-		response.Data = map[string]any{"description": string(resByte), "message": "Can't sent request", "error": err.Error()}
-		response.Status = "error"
-		return ClientApiResponse{}, response, err
-	}
-
-	err = json.Unmarshal(resByte, &getObject)
-	if err != nil {
-		response.Data = map[string]any{"description": string(resByte), "message": "Error while unmarshalling to object", "error": err.Error()}
-		response.Status = "error"
-		return ClientApiResponse{}, response, err
-	}
-
-	return getObject, response, nil
-}
-
 // GET LIST ITEM EXEC
 func (a *APIItem) GetList() *GetListItem {
 	return &GetListItem{
@@ -427,7 +396,7 @@ func (a *GetListItem) Exec() (GetListClientApiResponse, Response, error) {
 	var (
 		response = Response{Status: "done"}
 		listSlim GetListClientApiResponse
-		url      = fmt.Sprintf("%s/v2/object-slim/get-list/%s?from-ofs=%t", a.config.BaseURL, a.collection, true)
+		url      = fmt.Sprintf("%s/v2/items/%s?from-ofs=%t", a.config.BaseURL, a.collection, true)
 	)
 
 	reqObject, err := json.Marshal(a.request.Data)
