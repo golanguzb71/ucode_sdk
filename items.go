@@ -166,13 +166,13 @@ func (u *UpdateItem) ExecSingle() (ClientApiUpdateResponse, Response, error) {
 	return updateObject, response, nil
 }
 
-func (a *UpdateItem) ExecMultiple() (ClientApiMultipleUpdateResponse, Response, error) {
+func (a *UpdateItem) ExecMultiple(blockBuilder bool) (ClientApiMultipleUpdateResponse, Response, error) {
 	var (
 		response = Response{
 			Status: "done",
 		}
 		multipleUpdateObject ClientApiMultipleUpdateResponse
-		url                  = fmt.Sprintf("%s/v2/items/%s?from-ofs=%t", a.config.BaseURL, a.collection, a.data.DisableFaas)
+		url                  = fmt.Sprintf("%s/v2/items/%s?from-ofs=%t&block_builder=%t", a.config.BaseURL, a.collection, a.data.DisableFaas, blockBuilder)
 	)
 
 	var appId = a.config.AppId
